@@ -17,14 +17,17 @@ be re-synced from T3 Code with one command.
 | [`effect-codex-app-server`](packages/effect-codex-app-server) | Typed client for `codex app-server`, generated from the Codex protocol, with replay support | `packages/effect-codex-app-server` |
 | [`@t3-agent-kit/contracts`](packages/contracts) | T3 Code's wire schemas: orchestration v2 events, provider capabilities, model selection, RPC | `packages/contracts` |
 | [`@t3-agent-kit/checkpoint`](packages/checkpoint) | `CheckpointStore`: snapshot a workspace into hidden git refs per turn, then diff, restore and attribute authored paths. Handles submodules, nested repos, sparse checkouts and untracked files | `apps/server/src/{checkpointing,vcs}` |
-| [`@t3-agent-kit/provider-adapter`](packages/provider-adapter) | `ProviderAdapterV2`: the interface and normalized event stream every T3 Code provider implements | `packages/provider-core/src/server` |
+| [`@t3-agent-kit/shared`](packages/shared) | Upstream's shared utilities (Effect helpers, process, paths, markdown) that the provider packages build on | `packages/shared` |
+| [`@t3-agent-kit/provider-core`](packages/provider-core) | `ProviderAdapterV2`: the interface and normalized event stream every T3 Code provider implements, plus the adapter driver, runtime-event helpers and settings schemas | `packages/provider-core` |
+| [`@t3-agent-kit/provider-testing`](packages/provider-testing) | Provider-neutral replay: scripted transcripts of raw provider frames (`replayTranscript`), a gate for ordering frames (`replayGate`), temp workspaces, a fake CLI and a test provider host | `packages/provider-testing` |
+| [`@t3-agent-kit/provider-acp`](packages/provider-acp) | ACP adapter: turns any Agent Client Protocol agent into a `ProviderAdapterV2`, including terminals, elicitation forms and an MCP-over-ACP bridge | `packages/provider-acp` |
 
 ## Roadmap
 
 | Layer | Package | Status |
 | --- | --- | --- |
-| 2 | `replay`: record provider transcripts and replay them through adapters | Planned |
-| 2 | `adapter-codex`, `adapter-claude`, `adapter-acp` | Planned |
+| 2 | `replay` (as `provider-testing`) and `adapter-acp` (as `provider-acp`) | Done |
+| 2 | `adapter-codex`, `adapter-claude` (upstream keeps these in `apps/server`) | Planned |
 | 3 | `orchestrator`: command → event → outbox | Planned |
 | 3 | `client-runtime`: WebSocket connection, reconnect, thread sync | Planned |
 

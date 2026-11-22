@@ -1,6 +1,6 @@
 import * as NodeModule from "node:module";
 
-import * as HostProcess from "#shared/HostProcess";
+import * as HostProcess from "@t3-agent-kit/shared/HostProcess";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";

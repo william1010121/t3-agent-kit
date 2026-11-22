@@ -3,11 +3,12 @@
   "commit": "c198f73b3766090e02cace1a8b14f439f9fc63b6",
   "rewrites": {
     "@t3tools/contracts": "@t3-agent-kit/contracts",
-    "@t3tools/provider-core/server/ProviderAdapter": "@t3-agent-kit/provider-adapter",
-    "vite-plus/test": "vitest",
-    "@t3tools/shared": "#shared",
+    "@t3tools/shared": "@t3-agent-kit/shared",
+    "@t3tools/provider-core": "@t3-agent-kit/provider-core",
+    "@t3tools/provider-testing": "@t3-agent-kit/provider-testing",
+    "@t3tools/provider-acp": "@t3-agent-kit/provider-acp",
     "@t3tools/source-control-core": "#source-control-core",
-    "@t3tools/provider-core/server/collectStreamText": "#provider-core/server/collectStreamText"
+    "vite-plus/test": "vitest"
   },
   "packages": [
     {
@@ -34,15 +35,6 @@
       "paths": [
         "src"
       ]
-    },
-    {
-      "to": "packages/provider-adapter",
-      "from": "packages/provider-core/src/server",
-      "paths": [
-        "ProviderAdapter.ts",
-        "selectionTransition.ts"
-      ],
-      "into": "src"
     },
     {
       "to": "packages/checkpoint",
@@ -99,22 +91,42 @@
       ]
     },
     {
-      "to": "packages/checkpoint",
-      "from": "packages/shared/src",
-      "into": "src/_shared",
+      "to": "packages/shared",
+      "from": "packages/shared",
       "paths": [
-        "HostProcess.ts",
-        "schemaJson.ts",
-        "gitPatchPath.ts",
-        "shell.ts"
+        "src"
       ]
     },
     {
-      "to": "packages/checkpoint",
-      "from": "packages/provider-core/src/server",
-      "into": "src/_shared/provider-core",
+      "to": "packages/provider-core",
+      "from": "packages/provider-core",
       "paths": [
-        "collectStreamText.ts"
+        "src"
+      ]
+    },
+    {
+      "to": "packages/provider-testing",
+      "from": "packages/provider-testing",
+      "paths": [
+        "src"
+      ]
+    },
+    {
+      "to": "packages/provider-acp",
+      "from": "packages/provider-acp",
+      "paths": [
+        "src"
+      ]
+    },
+    {
+      "to": ".",
+      "from": ".",
+      "paths": [
+        "patches/mdast-util-math@3.0.0.patch",
+        "patches/micromark-extension-llm-math@3.1.0.patch",
+        "patches/micromark-extension-gfm-table@2.1.1.patch",
+        "patches/micromark@4.0.2.patch",
+        "patches/mdast-util-to-hast@13.2.1.patch"
       ]
     }
   ]

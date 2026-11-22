@@ -19,7 +19,7 @@ import {
   VcsProcessStdinWriteError,
   VcsProcessTimeoutError,
 } from "@t3-agent-kit/contracts";
-import * as HostProcess from "#shared/HostProcess";
+import * as HostProcess from "@t3-agent-kit/shared/HostProcess";
 import type { SourceControlProcessInput } from "#source-control-core/server/SourceControlHost";
 
 import { gitCommandDuration, gitCommandsTotal, withMetrics } from "../observability/Metrics.ts";
