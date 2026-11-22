@@ -36,6 +36,18 @@
     "./serverActivation": {
       "types": "./src/serverActivation.ts",
       "import": "./src/serverActivation.ts"
+    },
+    "./ProjectCommands": {
+      "types": "./src/orchestration-v2/ProjectCommands.ts",
+      "import": "./src/orchestration-v2/ProjectCommands.ts"
+    },
+    "./ProjectStore": {
+      "types": "./src/orchestration-v2/ProjectStore.ts",
+      "import": "./src/orchestration-v2/ProjectStore.ts"
+    },
+    "./CommandPolicy": {
+      "types": "./src/orchestration-v2/CommandPolicy.ts",
+      "import": "./src/orchestration-v2/CommandPolicy.ts"
     }
   },
   "files": [
