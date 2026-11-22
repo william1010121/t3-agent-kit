@@ -1,0 +1,57 @@
+{
+  "name": "@t3-agent-kit/orchestration-store",
+  "version": "0.0.0",
+  "description": "T3 Code's event-sourcing storage: SQLite event store, command receipts, durable effect outbox and the schema migrations",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./EventStore": {
+      "types": "./src/orchestration-v2/EventStore.ts",
+      "import": "./src/orchestration-v2/EventStore.ts"
+    },
+    "./EffectOutbox": {
+      "types": "./src/orchestration-v2/EffectOutbox.ts",
+      "import": "./src/orchestration-v2/EffectOutbox.ts"
+    },
+    "./CommandReceiptStore": {
+      "types": "./src/orchestration-v2/CommandReceiptStore.ts",
+      "import": "./src/orchestration-v2/CommandReceiptStore.ts"
+    },
+    "./persistence/OrchestrationEventStore": {
+      "types": "./src/persistence/OrchestrationEventStore.ts",
+      "import": "./src/persistence/OrchestrationEventStore.ts"
+    },
+    "./persistence/Errors": {
+      "types": "./src/persistence/Errors.ts",
+      "import": "./src/persistence/Errors.ts"
+    },
+    "./persistence/Migrations": {
+      "types": "./src/persistence/Migrations.ts",
+      "import": "./src/persistence/Migrations.ts"
+    },
+    "./persistence/Sqlite": {
+      "types": "./src/persistence/Sqlite.ts",
+      "import": "./src/persistence/Sqlite.ts"
+    },
+    "./serverActivation": {
+      "types": "./src/serverActivation.ts",
+      "import": "./src/serverActivation.ts"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "effect-tsgo tsrs --noEmit"
+  },
+  "dependencies": {
+    "@t3-agent-kit/contracts": "workspace:*",
+    "@t3-agent-kit/shared": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:"
+  }
+}
