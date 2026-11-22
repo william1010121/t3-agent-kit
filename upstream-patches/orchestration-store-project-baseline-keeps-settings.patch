@@ -1,5 +1,5 @@
 diff --git a/packages/orchestration-store/src/orchestration-v2/ProjectStore.ts b/packages/orchestration-store/src/orchestration-v2/ProjectStore.ts
-index d66b002..5ddbec0 100644
+index d66b002..f09088f 100644
 --- a/packages/orchestration-store/src/orchestration-v2/ProjectStore.ts
 +++ b/packages/orchestration-store/src/orchestration-v2/ProjectStore.ts
 @@ -247,20 +247,24 @@ export const make = Effect.gen(function* () {
@@ -7,7 +7,7 @@ index d66b002..5ddbec0 100644
        if (event.type === "project.created") {
          const payload = event.payload;
 +        // A migration baseline replays project.created over a live row; keep the
-+        // settings its payload does not carry.
++        // settings its payload omits. An explicit null still clears them.
 +        const previous = yield* get(payload.projectId);
 +        const kept = Option.getOrUndefined(previous);
          return yield* upsertRow({
@@ -20,10 +20,10 @@ index d66b002..5ddbec0 100644
 -          autoPull: false,
 -          faviconPath: payload.faviconPath ?? null,
 -          projectIcon: payload.projectIcon ?? null,
-+          defaultThreadEnvMode: payload.defaultThreadEnvMode ?? kept?.defaultThreadEnvMode ?? null,
++          defaultThreadEnvMode: payload.defaultThreadEnvMode !== undefined ? payload.defaultThreadEnvMode : (kept?.defaultThreadEnvMode ?? null),
 +          autoPull: kept?.autoPull ?? false,
-+          faviconPath: payload.faviconPath ?? kept?.faviconPath ?? null,
-+          projectIcon: payload.projectIcon ?? kept?.projectIcon ?? null,
++          faviconPath: payload.faviconPath !== undefined ? payload.faviconPath : (kept?.faviconPath ?? null),
++          projectIcon: payload.projectIcon !== undefined ? payload.projectIcon : (kept?.projectIcon ?? null),
            scripts: payload.scripts,
 -          trackedFolders: payload.trackedFolders ?? [],
 -          pinnedAt: null,

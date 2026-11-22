@@ -87,6 +87,19 @@ it.layer(ProjectStore.layer.pipe(Layer.provideMerge(SqlitePersistence.layerMemor
             archivedAt: at,
           },
         );
+
+        yield* projects.apply({
+          ...event,
+          sequence: 4,
+          eventId: EventId.make("event-baseline-settings-recreated"),
+          type: "project.created",
+          payload: { ...created, defaultThreadEnvMode: null, faviconPath: null, projectIcon: null },
+        });
+        const cleared = Option.getOrNull(yield* projects.get(projectId));
+        assert.deepStrictEqual(
+          [cleared?.defaultThreadEnvMode, cleared?.faviconPath, cleared?.projectIcon],
+          [null, null, null],
+        );
       }),
     );
   },
