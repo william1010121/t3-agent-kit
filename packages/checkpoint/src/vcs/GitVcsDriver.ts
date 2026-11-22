@@ -40,8 +40,8 @@ import {
   type WorktreeSubmodules,
 } from "@t3-agent-kit/contracts";
 import { isMissingExecutable } from "#source-control-core/server/discovery";
-import * as HostProcess from "#shared/HostProcess";
-import { quoteGitPatchPath } from "#shared/gitPatchPath";
+import * as HostProcess from "@t3-agent-kit/shared/HostProcess";
+import { quoteGitPatchPath } from "@t3-agent-kit/shared/gitPatchPath";
 import {
   makeGitVcsDriverCore,
   PATCH_RENDER_PREFIX_ARGS,

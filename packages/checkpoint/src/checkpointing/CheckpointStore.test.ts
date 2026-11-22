@@ -5,7 +5,7 @@ import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { it } from "@effect/vitest";
 import { CheckpointRef, ThreadId, type VcsError } from "@t3-agent-kit/contracts";
-import * as HostProcess from "#shared/HostProcess";
+import * as HostProcess from "@t3-agent-kit/shared/HostProcess";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
 import * as Layer from "effect/Layer";

@@ -7,7 +7,7 @@ import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
 import { VcsDriverKind, type VcsDriverKind as VcsDriverKindType } from "@t3-agent-kit/contracts";
-import { fromLenientJson } from "#shared/schemaJson";
+import { fromLenientJson } from "@t3-agent-kit/shared/schemaJson";
 
 const ProjectVcsConfig = Schema.Struct({
   vcs: Schema.optional(

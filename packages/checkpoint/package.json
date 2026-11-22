@@ -11,8 +11,6 @@
     }
   },
   "imports": {
-    "#shared/*": "./src/_shared/*.ts",
-    "#provider-core/server/*": "./src/_shared/provider-core/*.ts",
     "#source-control-core/server/*": "./src/_shims/source-control-core/*.ts"
   },
   "files": [
@@ -23,6 +21,8 @@
   },
   "dependencies": {
     "@t3-agent-kit/contracts": "workspace:*",
+    "@t3-agent-kit/provider-core": "workspace:*",
+    "@t3-agent-kit/shared": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {
