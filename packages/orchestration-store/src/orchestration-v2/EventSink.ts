@@ -681,6 +681,16 @@ const layerBase: Layer.Layer<
       );
     });
 
+    // Projection merges (json_set) can move keys, so compare payloads regardless of key order.
+    const canonicalJson = (json: string) =>
+      JSON.stringify(JSON.parse(json), (_key, value: unknown) =>
+        value !== null && typeof value === "object" && !Array.isArray(value)
+          ? Object.fromEntries(
+              Object.entries(value).toSorted(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+            )
+          : value,
+      );
+
     // Appends the events only if the stored payload still matches, in one transaction.
     const writeIfStoredPayloadMatches = <E>(
       readStoredPayload: Effect.Effect<ReadonlyArray<{ readonly payload_json: string }>, E>,
@@ -691,7 +701,8 @@ const layerBase: Layer.Layer<
         projectedThreadIds(events),
         Effect.gen(function* () {
           const rows = yield* readStoredPayload;
-          if (rows[0]?.payload_json !== expectedJson) {
+          const stored = rows[0]?.payload_json;
+          if (stored === undefined || canonicalJson(stored) !== canonicalJson(expectedJson)) {
             return {
               committed: false as const,
               storedEvents: [] as ReadonlyArray<OrchestrationV2StoredEvent>,

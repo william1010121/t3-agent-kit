@@ -94,6 +94,7 @@ To add a fix, edit the vendored file, then save the diff:
 | `orchestration-store` | Migration 081 doesn't backfill search text for escaped link labels with no citation | Patched |
 | `orchestration-store` | Replaying a migration baseline resets project settings (auto-pull, env mode, icon, pins) | Patched |
 | `orchestration-store` | `project.create` accepts script IDs that keybindings reject | Patched |
+| `orchestration-store` | Conditional subagent writes fail after a projection merge keeps an omitted `completionDelivery` (stored keys reordered) | Patched |
 | `provider-claude` | Changing `cwd` without reopening the session keeps Claude in the old checkout | By design upstream; reopen the session |
 
 ```sh
