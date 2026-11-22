@@ -1,0 +1,153 @@
+diff --git a/packages/client-runtime/src/connection/onboarding.ts b/packages/client-runtime/src/connection/onboarding.ts
+index 5fab0a8..ee02b15 100644
+--- a/packages/client-runtime/src/connection/onboarding.ts
++++ b/packages/client-runtime/src/connection/onboarding.ts
+@@ -44,7 +44,7 @@ import {
+ import * as Persistence from "../platform/persistence.ts";
+ import * as EnvironmentRegistry from "./registry.ts";
+ import { orchestrationProtocolCompatibilityError } from "./compatibility.ts";
+-import { connectionRoutes, routeEntry, sshTargetKey } from "./routes.ts";
++import { connectionRoutes, isLearned, routeEntry, sshTargetKey } from "./routes.ts";
+ 
+ export interface PairingConnectionInput {
+   readonly pairingUrl?: string;
+@@ -252,7 +252,7 @@ const updateBearerConnection = Effect.fn(
+     saved === undefined
+       ? undefined
+       : connectionRoutes(saved).find(
+-          (candidate) => candidate.target._tag === "BearerConnectionTarget",
++          (candidate) => candidate.target._tag === "BearerConnectionTarget" && !isLearned(candidate),
+         );
+   const entry = saved === undefined || route === undefined ? saved : routeEntry(saved, route);
+   const credential =
+diff --git a/packages/client-runtime/src/connection/registry.test.ts b/packages/client-runtime/src/connection/registry.test.ts
+index 473aab2..ab9a19d 100644
+--- a/packages/client-runtime/src/connection/registry.test.ts
++++ b/packages/client-runtime/src/connection/registry.test.ts
+@@ -1,3 +1,5 @@
++import * as ConnectionOnboarding from "./onboarding.ts";
++import * as HttpClient from "effect/http/HttpClient";
+ import {
+   type DesktopSshEnvironmentTarget,
+   EnvironmentId,
+@@ -2340,3 +2342,107 @@ describe("EnvironmentRegistry routes", () => {
+     }),
+   );
+ });
++
++describe("t3-agent-kit local fixes", () => {
++  it.live("a platform bearer stored after a failed write unblocks the backend", () =>
++    Effect.gen(function* () {
++      let failPut = true;
++      let stored: Ref.Ref<Map<string, ConnectionCredential>> | undefined;
++      const harness = yield* makeHarness([], [], [], {
++        beforeCredentialPut: () =>
++          failPut
++            ? Effect.fail(
++                new ConnectionTransientError({ reason: "remote-unavailable", detail: "Keychain locked" }),
++              )
++            : Effect.void,
++        beforePrepareRoute: (target) =>
++          target._tag !== "BearerConnectionTarget" || stored === undefined
++            ? Effect.undefined
++            : Ref.get(stored).pipe(
++                Effect.map((current) =>
++                  current.has(target.connectionId)
++                    ? undefined
++                    : new ConnectionBlockedError({ reason: "authentication", detail: "missing" }),
++                ),
++              ),
++      });
++      stored = harness.storedCredentials;
++      yield* Effect.gen(function* () {
++        const registry = yield* EnvironmentRegistry.EnvironmentRegistry;
++        const registration = new BearerConnectionRegistration({
++          target: BEARER_TARGET,
++          profile: BEARER_PROFILE,
++          credential: new BearerConnectionCredential({ token: "local-bearer" }),
++        });
++        yield* registry.reconcilePlatform([registration]);
++        yield* awaitConnectionState(registry, BEARER_TARGET.environmentId, (s) => s.phase === "blocked");
++
++        failPut = false;
++        yield* registry.reconcilePlatform([registration]);
++        expect((yield* Ref.get(harness.storedCredentials)).has(BEARER_TARGET.connectionId)).toBe(true);
++
++        const connected = yield* awaitConnectionState(
++          registry,
++          BEARER_TARGET.environmentId,
++          (s) => s.phase === "connected",
++        ).pipe(Effect.timeoutOption("2 seconds"));
++        expect((yield* registry.state(BEARER_TARGET.environmentId)).phase).toBe("connected");
++        expect(Option.isSome(connected)).toBe(true);
++      }).pipe(Effect.provide(harness.layer), Effect.scoped);
++    }),
++  );
++
++  it.effect("editing a saved connection whose first route is a learned one", () =>
++    Effect.gen(function* () {
++      const environmentId = EnvironmentId.make("environment-learned");
++      const paired = new BearerConnectionTarget({
++        environmentId,
++        label: "Desk",
++        connectionId: "bearer:desk",
++      });
++      const pairedProfile = new BearerConnectionProfile({
++        connectionId: paired.connectionId,
++        environmentId,
++        label: "Desk",
++        httpBaseUrl: "https://desk.example.test/",
++        wsBaseUrl: "wss://desk.example.test/",
++      });
++      const learnedId = `learned:${environmentId}:http://100.101.102.103:3773@${paired.connectionId}`;
++      const learned = new BearerConnectionTarget({ ...paired, connectionId: learnedId });
++      const learnedProfile = new BearerConnectionProfile({
++        connectionId: learnedId,
++        environmentId,
++        label: "Desk",
++        httpBaseUrl: "http://100.101.102.103:3773/",
++        wsBaseUrl: "ws://100.101.102.103:3773/",
++        learned: true,
++        network: "tailscale",
++      });
++      const harness = yield* makeHarness(
++        [learned, paired],
++        [learnedProfile, pairedProfile],
++        [[paired.connectionId, BEARER_CREDENTIAL]],
++      );
++      const credentials = ConnectionCredentialStore.ConnectionCredentialStore.of({
++        get: (id) => Ref.get(harness.storedCredentials).pipe(Effect.map((m) => Option.fromUndefinedOr(m.get(id)))),
++        put: () => Effect.void,
++        remove: () => Effect.void,
++      });
++      const result = yield* Effect.gen(function* () {
++        const registry = yield* EnvironmentRegistry.EnvironmentRegistry;
++        const routes = (yield* SubscriptionRef.get(registry.entries)).get(environmentId);
++        expect(routes?.target._tag === "BearerConnectionTarget" && routes.target.connectionId).toBe(learnedId);
++        const onboarding = yield* ConnectionOnboarding.make.pipe(
++          Effect.provideService(ConnectionCredentialStore.ConnectionCredentialStore, credentials),
++          Effect.provideService(ClientCapabilities.ClientPresentation, { metadata: {} as never }),
++          Effect.provideService(ClientCapabilities.SshEnvironmentGateway, {} as never),
++          Effect.provideService(HttpClient.HttpClient, {} as never),
++        );
++        return yield* onboarding
++          .updateBearer({ environmentId, label: "Desk renamed", httpBaseUrl: "https://desk.example.test/" })
++          .pipe(Effect.result);
++      }).pipe(Effect.provide(harness.layer), Effect.scoped);
++      expect(Result.isSuccess(result) ? "ok" : Option.getOrThrow(Result.getFailure(result)).message).toBe("ok");
++    }),
++  );
++});
+diff --git a/packages/client-runtime/src/connection/registry.ts b/packages/client-runtime/src/connection/registry.ts
+index 9183952..dcf9a5f 100644
+--- a/packages/client-runtime/src/connection/registry.ts
++++ b/packages/client-runtime/src/connection/registry.ts
+@@ -680,7 +680,7 @@ export const make = Effect.gen(function* () {
+               .get(registration.target.connectionId)
+               .pipe(Effect.orElseSucceed(() => Option.none<ConnectionCredential>()));
+             bearerChanged =
+-              Option.isSome(stored) && !Equal.equals(stored.value, registration.credential);
++              Option.isNone(stored) || !Equal.equals(stored.value, registration.credential);
+           }
+ 
+           if (persisted) {

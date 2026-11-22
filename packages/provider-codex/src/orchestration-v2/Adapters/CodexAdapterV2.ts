@@ -5888,6 +5888,13 @@ export const makeCodexAdapterV2 = Effect.fn("makeCodexAdapterV2")(function* (
             }
 
             if (payload.item.delivery === "async" && payload.item.questions?.length) {
+              // Drop the streamed question text so flushTurn cannot replace the card with it.
+              yield* agentMessageDeltas.complete({
+                turnId: payload.turnId,
+                itemId: payload.item.id,
+                finalText: "",
+                emitEmpty: false,
+              });
               const artifacts = yield* buildUserInputRequestArtifacts({
                 context,
                 nativeItemId: payload.item.id,

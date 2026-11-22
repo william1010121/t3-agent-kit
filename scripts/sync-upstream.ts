@@ -1,7 +1,9 @@
-// Copies the upstream T3 Code files listed in upstream.json into this repo.
+// Copies the upstream T3 Code files listed in upstream.json into this repo, then
+// applies the local fixes in upstream-patches/*.patch on top.
 // Usage: node scripts/sync-upstream.ts [--commit <sha>] [--check]
 import * as ChildProcess from "node:child_process";
 import * as FS from "node:fs";
+import * as OS from "node:os";
 import * as Path from "node:path";
 
 interface PackageMapping {
@@ -56,42 +58,68 @@ const rewrite = (source: string) =>
   });
 
 const isText = (file: string) => /\.(ts|tsx|mts|cts|js|mjs|json|md)$/.test(file);
-const drift: string[] = [];
+const staging = FS.mkdtempSync(Path.join(OS.tmpdir(), "t3-agent-kit-sync-"));
+process.on("exit", () => FS.rmSync(staging, { recursive: true, force: true }));
+const staged: string[] = [];
 
-const copy = (source: string, target: string) => {
+const stage = (source: string, target: string) => {
   const stat = FS.statSync(source);
   if (stat.isDirectory()) {
-    for (const entry of FS.readdirSync(source)) copy(Path.join(source, entry), Path.join(target, entry));
+    for (const entry of FS.readdirSync(source)) stage(Path.join(source, entry), Path.join(target, entry));
     return;
   }
   const raw = FS.readFileSync(source);
   const output = isText(source) ? Buffer.from(rewrite(raw.toString("utf8"))) : raw;
-  const current = FS.existsSync(target) ? FS.readFileSync(target) : undefined;
-  if (current !== undefined && current.equals(output)) return;
-  drift.push(Path.relative(root, target));
-  if (check) return;
-  FS.mkdirSync(Path.dirname(target), { recursive: true });
-  FS.writeFileSync(target, output);
+  FS.mkdirSync(Path.dirname(Path.join(staging, target)), { recursive: true });
+  FS.writeFileSync(Path.join(staging, target), output);
+  staged.push(target);
 };
 
 for (const mapping of config.packages) {
-  const destination = Path.join(root, mapping.to, mapping.into ?? "");
-  if (!check) {
+  const destination = Path.join(mapping.to, mapping.into ?? "");
+  for (const entry of mapping.paths) {
+    stage(Path.join(cacheDir, mapping.from, entry), Path.join(destination, entry));
+  }
+}
+
+const patchesDir = Path.join(root, "upstream-patches");
+const patches = FS.existsSync(patchesDir)
+  ? FS.readdirSync(patchesDir).filter((file) => file.endsWith(".patch")).sort()
+  : [];
+for (const patch of patches) {
+  ChildProcess.execFileSync("git", ["apply", "--whitespace=nowarn", Path.join(patchesDir, patch)], {
+    cwd: staging,
+    stdio: ["ignore", "inherit", "inherit"],
+  });
+}
+
+if (!check) {
+  for (const mapping of config.packages) {
+    const destination = Path.join(root, mapping.to, mapping.into ?? "");
     for (const entry of mapping.paths) FS.rmSync(Path.join(destination, entry), { recursive: true, force: true });
   }
-  for (const entry of mapping.paths) {
-    copy(Path.join(cacheDir, mapping.from, entry), Path.join(destination, entry));
-  }
+}
+
+const drift: string[] = [];
+for (const file of staged) {
+  const output = FS.readFileSync(Path.join(staging, file));
+  const target = Path.join(root, file);
+  const current = FS.existsSync(target) ? FS.readFileSync(target) : undefined;
+  if (current !== undefined && current.equals(output)) continue;
+  drift.push(file);
+  if (check) continue;
+  FS.mkdirSync(Path.dirname(target), { recursive: true });
+  FS.writeFileSync(target, output);
 }
 
 if (check) {
   if (drift.length > 0) {
-    console.error(`Vendored files differ from upstream ${resolved}:\n  ${drift.join("\n  ")}`);
+    console.error(`Vendored files differ from upstream ${resolved} plus ${patches.length} patch(es):\n  ${drift.join("\n  ")}`);
     process.exit(1);
   }
-  console.log(`Vendored files match upstream ${resolved}.`);
+  console.log(`Vendored files match upstream ${resolved} plus ${patches.length} patch(es).`);
 } else {
   config.commit = resolved;
   FS.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
-  console.log(`Copied ${drift.length} file(s) from upstream ${resolved}.`);
+  console.log(`Wrote ${drift.length} file(s) from upstream ${resolved} plus ${patches.length} patch(es).`);
 }

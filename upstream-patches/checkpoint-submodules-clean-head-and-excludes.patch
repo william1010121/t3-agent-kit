@@ -1,0 +1,56 @@
+diff --git a/packages/checkpoint/src/vcs/GitVcsDriver.ts b/packages/checkpoint/src/vcs/GitVcsDriver.ts
+index e1b9ca0..4cd4f76 100644
+--- a/packages/checkpoint/src/vcs/GitVcsDriver.ts
++++ b/packages/checkpoint/src/vcs/GitVcsDriver.ts
+@@ -1062,6 +1062,18 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
+       .filter((entry) => entry !== "" && !entry.startsWith("../"))
+       .map((entry) => path.join(cwd, entry));
+   });
++  const includedSubmodules = (cwd: string, excludePaths: ReadonlyArray<string> | undefined) =>
++    listSubmodules(cwd).pipe(
++      Effect.map((submodules) =>
++        submodules.filter((submodule) => {
++          const relative = path.relative(cwd, submodule);
++          return !(excludePaths ?? []).some((excluded) => {
++            const prefix = excluded.replace(/\/+$/, "");
++            return relative === prefix || relative.startsWith(`${prefix}/`);
++          });
++        }),
++      ),
++    );
+ 
+   // Git defaults and macOS writeout-only can leave empty refs after crashes; flush before publication.
+   // Set fsync first: Git 2.36 ignores unknown batch without resetting the method.
+@@ -1902,7 +1914,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
+           .pipe(Effect.orElseSucceed(() => true)));
+       if (!hasSubmodules) return;
+       // A submodule that cannot be captured drops its ref, so restore leaves it alone.
+-      yield* listSubmodules(input.cwd).pipe(
++      yield* includedSubmodules(input.cwd, input.excludePaths).pipe(
+         Effect.flatMap((submodules) =>
+           Effect.forEach(
+             submodules,
+@@ -1953,6 +1965,14 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
+       if (lines.some((line) => !line.startsWith("# "))) return null;
+       const head = lines.find((line) => line.startsWith("# branch.oid "))?.slice(13);
+       if (head === undefined || !/^[0-9a-f]{40,64}$/.test(head)) return null;
++      // A head checkpoint records no submodule refs, so submodules need the full capture.
++      const hasGitmodules = yield* fileSystem
++        .exists(path.join(cwd, ".gitmodules"))
++        .pipe(Effect.orElseSucceed(() => true));
++      if (hasGitmodules) {
++        const submodules = yield* listSubmodules(cwd).pipe(Effect.orElseSucceed(() => [""]));
++        if (submodules.length > 0) return null;
++      }
+       return (yield* hasFlaggedIndexEntries(cwd)) ? null : head;
+     }),
+ 
+@@ -2210,7 +2230,7 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
+ 
+       // A submodule without this ref was not captured, and restoring it to HEAD would lose edits.
+       // The root is already restored, so a failing submodule must not hide that from the caller.
+-      yield* listSubmodules(input.cwd).pipe(
++      yield* includedSubmodules(input.cwd, input.excludePaths).pipe(
+         Effect.flatMap((submodules) =>
+           Effect.forEach(
+             submodules,

@@ -1,0 +1,36 @@
+diff --git a/packages/orchestration-store/src/orchestration-v2/ProjectStore.ts b/packages/orchestration-store/src/orchestration-v2/ProjectStore.ts
+index d66b002..f09088f 100644
+--- a/packages/orchestration-store/src/orchestration-v2/ProjectStore.ts
++++ b/packages/orchestration-store/src/orchestration-v2/ProjectStore.ts
+@@ -247,20 +247,24 @@ export const make = Effect.gen(function* () {
+     function* (event) {
+       if (event.type === "project.created") {
+         const payload = event.payload;
++        // A migration baseline replays project.created over a live row; keep the
++        // settings its payload omits. An explicit null still clears them.
++        const previous = yield* get(payload.projectId);
++        const kept = Option.getOrUndefined(previous);
+         return yield* upsertRow({
+           projectId: payload.projectId,
+           title: payload.title,
+           hasCustomTitle: false,
+           workspaceRoot: payload.workspaceRoot,
+           defaultModelSelection: payload.defaultModelSelection,
+-          defaultThreadEnvMode: payload.defaultThreadEnvMode ?? null,
+-          autoPull: false,
+-          faviconPath: payload.faviconPath ?? null,
+-          projectIcon: payload.projectIcon ?? null,
++          defaultThreadEnvMode: payload.defaultThreadEnvMode !== undefined ? payload.defaultThreadEnvMode : (kept?.defaultThreadEnvMode ?? null),
++          autoPull: kept?.autoPull ?? false,
++          faviconPath: payload.faviconPath !== undefined ? payload.faviconPath : (kept?.faviconPath ?? null),
++          projectIcon: payload.projectIcon !== undefined ? payload.projectIcon : (kept?.projectIcon ?? null),
+           scripts: payload.scripts,
+-          trackedFolders: payload.trackedFolders ?? [],
+-          pinnedAt: null,
+-          archivedAt: null,
++          trackedFolders: payload.trackedFolders ?? kept?.trackedFolders ?? [],
++          pinnedAt: kept?.pinnedAt ?? null,
++          archivedAt: kept?.archivedAt ?? null,
+           createdAt: payload.createdAt,
+           updatedAt: payload.updatedAt,
+           deletedAt: null,

@@ -74,10 +74,31 @@ not extracted, the package has a small hand-written stand-in instead (for exampl
 `packages/checkpoint/src/vcs/GitVcsDriverCore.ts` and `packages/checkpoint/src/_shims`). Do not edit them by hand; change `upstream.json` or the sync
 script instead.
 
+Fixes for upstream bugs live in [`upstream-patches/`](upstream-patches) as patch files. `pnpm sync` applies them
+after copying, and `pnpm sync:check` checks the copy and the patches together. Only bugs reproduced
+by a failing test get a patch. The regression tests are in `*.local.test.ts` files beside the code;
+the client-runtime ones are added to `registry.test.ts` by their patch, because they need its harness.
+To add a fix, edit the vendored file, then save the diff:
+`git diff -- <file> > upstream-patches/<package>-<bug>.patch`.
+
+### Known upstream issues
+
+| Package | Bug | Status |
+|---|---|---|
+| `checkpoint` | Undo after a turn that started on a clean checkout leaves submodule edits in place | Patched |
+| `checkpoint` | Restore overwrites a submodule listed in `excludePaths` | Patched |
+| `provider-codex` | An async question whose text was streamed is replaced by an assistant message at turn end | Patched |
+| `client-runtime` | Editing a saved connection fails when a learned route comes before the paired route | Patched |
+| `client-runtime` | A local backend stays blocked when its bearer is stored after a failed first write | Patched |
+| `orchestration-store` | Migration 081 doesn't backfill search text for escaped link labels with no citation | Patched |
+| `orchestration-store` | Replaying a migration baseline resets project settings (auto-pull, env mode, icon, pins) | Patched |
+| `orchestration-store` | `project.create` accepts script IDs that keybindings reject | Patched |
+| `provider-claude` | Changing `cwd` without reopening the session keeps Claude in the old checkout | By design upstream; reopen the session |
+
 ```sh
 pnpm sync                          # re-copy from the pinned commit
 pnpm sync --commit <sha|branch>    # move to a new upstream commit and update the pin
-pnpm sync:check                    # fail if vendored files drift from the pin (runs in CI)
+pnpm sync:check                    # fail if vendored files drift from the pin plus patches (runs in CI)
 ```
 
 ## Development

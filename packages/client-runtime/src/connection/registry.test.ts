@@ -1,3 +1,5 @@
+import * as ConnectionOnboarding from "./onboarding.ts";
+import * as HttpClient from "effect/http/HttpClient";
 import {
   type DesktopSshEnvironmentTarget,
   EnvironmentId,
@@ -2337,6 +2339,110 @@ describe("EnvironmentRegistry routes", () => {
         expect(entry?.target).toEqual(LAN_TARGET);
         expect(entry?.alternateRoutes ?? []).toEqual([]);
       }).pipe(Effect.provide(harness.layer), Effect.scoped);
+    }),
+  );
+});
+
+describe("t3-agent-kit local fixes", () => {
+  it.live("a platform bearer stored after a failed write unblocks the backend", () =>
+    Effect.gen(function* () {
+      let failPut = true;
+      let stored: Ref.Ref<Map<string, ConnectionCredential>> | undefined;
+      const harness = yield* makeHarness([], [], [], {
+        beforeCredentialPut: () =>
+          failPut
+            ? Effect.fail(
+                new ConnectionTransientError({ reason: "remote-unavailable", detail: "Keychain locked" }),
+              )
+            : Effect.void,
+        beforePrepareRoute: (target) =>
+          target._tag !== "BearerConnectionTarget" || stored === undefined
+            ? Effect.undefined
+            : Ref.get(stored).pipe(
+                Effect.map((current) =>
+                  current.has(target.connectionId)
+                    ? undefined
+                    : new ConnectionBlockedError({ reason: "authentication", detail: "missing" }),
+                ),
+              ),
+      });
+      stored = harness.storedCredentials;
+      yield* Effect.gen(function* () {
+        const registry = yield* EnvironmentRegistry.EnvironmentRegistry;
+        const registration = new BearerConnectionRegistration({
+          target: BEARER_TARGET,
+          profile: BEARER_PROFILE,
+          credential: new BearerConnectionCredential({ token: "local-bearer" }),
+        });
+        yield* registry.reconcilePlatform([registration]);
+        yield* awaitConnectionState(registry, BEARER_TARGET.environmentId, (s) => s.phase === "blocked");
+
+        failPut = false;
+        yield* registry.reconcilePlatform([registration]);
+        expect((yield* Ref.get(harness.storedCredentials)).has(BEARER_TARGET.connectionId)).toBe(true);
+
+        const connected = yield* awaitConnectionState(
+          registry,
+          BEARER_TARGET.environmentId,
+          (s) => s.phase === "connected",
+        ).pipe(Effect.timeoutOption("2 seconds"));
+        expect((yield* registry.state(BEARER_TARGET.environmentId)).phase).toBe("connected");
+        expect(Option.isSome(connected)).toBe(true);
+      }).pipe(Effect.provide(harness.layer), Effect.scoped);
+    }),
+  );
+
+  it.effect("editing a saved connection whose first route is a learned one", () =>
+    Effect.gen(function* () {
+      const environmentId = EnvironmentId.make("environment-learned");
+      const paired = new BearerConnectionTarget({
+        environmentId,
+        label: "Desk",
+        connectionId: "bearer:desk",
+      });
+      const pairedProfile = new BearerConnectionProfile({
+        connectionId: paired.connectionId,
+        environmentId,
+        label: "Desk",
+        httpBaseUrl: "https://desk.example.test/",
+        wsBaseUrl: "wss://desk.example.test/",
+      });
+      const learnedId = `learned:${environmentId}:http://100.101.102.103:3773@${paired.connectionId}`;
+      const learned = new BearerConnectionTarget({ ...paired, connectionId: learnedId });
+      const learnedProfile = new BearerConnectionProfile({
+        connectionId: learnedId,
+        environmentId,
+        label: "Desk",
+        httpBaseUrl: "http://100.101.102.103:3773/",
+        wsBaseUrl: "ws://100.101.102.103:3773/",
+        learned: true,
+        network: "tailscale",
+      });
+      const harness = yield* makeHarness(
+        [learned, paired],
+        [learnedProfile, pairedProfile],
+        [[paired.connectionId, BEARER_CREDENTIAL]],
+      );
+      const credentials = ConnectionCredentialStore.ConnectionCredentialStore.of({
+        get: (id) => Ref.get(harness.storedCredentials).pipe(Effect.map((m) => Option.fromUndefinedOr(m.get(id)))),
+        put: () => Effect.void,
+        remove: () => Effect.void,
+      });
+      const result = yield* Effect.gen(function* () {
+        const registry = yield* EnvironmentRegistry.EnvironmentRegistry;
+        const routes = (yield* SubscriptionRef.get(registry.entries)).get(environmentId);
+        expect(routes?.target._tag === "BearerConnectionTarget" && routes.target.connectionId).toBe(learnedId);
+        const onboarding = yield* ConnectionOnboarding.make.pipe(
+          Effect.provideService(ConnectionCredentialStore.ConnectionCredentialStore, credentials),
+          Effect.provideService(ClientCapabilities.ClientPresentation, { metadata: {} as never }),
+          Effect.provideService(ClientCapabilities.SshEnvironmentGateway, {} as never),
+          Effect.provideService(HttpClient.HttpClient, {} as never),
+        );
+        return yield* onboarding
+          .updateBearer({ environmentId, label: "Desk renamed", httpBaseUrl: "https://desk.example.test/" })
+          .pipe(Effect.result);
+      }).pipe(Effect.provide(harness.layer), Effect.scoped);
+      expect(Result.isSuccess(result) ? "ok" : Option.getOrThrow(Result.getFailure(result)).message).toBe("ok");
     }),
   );
 });
