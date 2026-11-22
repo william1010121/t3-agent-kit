@@ -1,0 +1,14 @@
+{
+  "name": "@t3-agent-kit/contracts",
+  "version": "0.0.0",
+  "description": "T3 Code wire contracts: orchestration v2 events, provider capabilities, RPC schemas",
+  "license": "MIT",
+  "type": "module",
+  "exports": { ".": { "types": "./src/index.ts", "import": "./src/index.ts" }, "./settings": { "types": "./src/settings.ts", "import": "./src/settings.ts" }, "./relay": { "types": "./src/relay.ts", "import": "./src/relay.ts" } },
+  "files": ["src"],
+  "scripts": {
+    "typecheck": "effect-tsgo tsrs --noEmit"
+  },
+  "dependencies": { "effect": "catalog:" },
+  "devDependencies": { "@effect/vitest": "catalog:", "@types/node": "catalog:" }
+}
