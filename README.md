@@ -95,6 +95,7 @@ To add a fix, edit the vendored file, then save the diff:
 | `provider-claude` | With a custom Claude home, subagent launch and model lookups read the server's Claude home, so resumed subagents lose their launch call | Patched |
 | `client-runtime` | Editing a saved connection fails when a learned route comes before the paired route | Patched |
 | `client-runtime` | A local backend stays blocked when its bearer is stored after a failed first write | Patched |
+| `source-control-definitions` | `isSameChangeRequest` treats the `dev.azure.com` and `*.visualstudio.com` URLs of one Azure DevOps pull request as different | Patched |
 | `orchestration-store` | Migration 081 doesn't backfill search text for escaped link labels with no citation | Patched |
 | `orchestration-store` | Replaying a migration baseline resets project settings (auto-pull, env mode, icon, pins) | Patched |
 | `orchestration-store` | `project.create` accepts script IDs that keybindings reject | Patched |
