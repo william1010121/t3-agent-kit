@@ -4,7 +4,10 @@
   "rewrites": {
     "@t3tools/contracts": "@t3-agent-kit/contracts",
     "@t3tools/provider-core/server/ProviderAdapter": "@t3-agent-kit/provider-adapter",
-    "vite-plus/test": "vitest"
+    "vite-plus/test": "vitest",
+    "@t3tools/shared": "#shared",
+    "@t3tools/source-control-core": "#source-control-core",
+    "@t3tools/provider-core/server/collectStreamText": "#provider-core/server/collectStreamText"
   },
   "packages": [
     {
@@ -40,6 +43,79 @@
         "selectionTransition.ts"
       ],
       "into": "src"
+    },
+    {
+      "to": "packages/checkpoint",
+      "from": "apps/server/src/vcs",
+      "into": "src/vcs",
+      "paths": [
+        "VcsDriver.ts",
+        "VcsProcess.ts",
+        "VcsProcess.test.ts",
+        "GitVcsDriver.ts",
+        "checkpointUntrackedBlobs.ts",
+        "CheckoutCloner.ts",
+        "VcsDriverRegistry.ts",
+        "VcsDriverRegistry.test.ts",
+        "VcsProjectConfig.ts",
+        "VcsProjectConfig.test.ts"
+      ]
+    },
+    {
+      "to": "packages/checkpoint",
+      "from": "apps/server/src/checkpointing",
+      "into": "src/checkpointing",
+      "paths": [
+        "CheckpointStore.ts",
+        "CheckpointStore.test.ts",
+        "Diffs.ts",
+        "Diffs.test.ts",
+        "Errors.ts"
+      ]
+    },
+    {
+      "to": "packages/checkpoint",
+      "from": "apps/server/src",
+      "into": "src",
+      "paths": [
+        "processRunner.ts"
+      ]
+    },
+    {
+      "to": "packages/checkpoint",
+      "from": "apps/server/src/persistence",
+      "into": "src/persistence",
+      "paths": [
+        "Errors.ts"
+      ]
+    },
+    {
+      "to": "packages/checkpoint",
+      "from": "apps/server/src/observability",
+      "into": "src/observability",
+      "paths": [
+        "Metrics.ts",
+        "Attributes.ts"
+      ]
+    },
+    {
+      "to": "packages/checkpoint",
+      "from": "packages/shared/src",
+      "into": "src/_shared",
+      "paths": [
+        "HostProcess.ts",
+        "schemaJson.ts",
+        "gitPatchPath.ts",
+        "shell.ts"
+      ]
+    },
+    {
+      "to": "packages/checkpoint",
+      "from": "packages/provider-core/src/server",
+      "into": "src/_shared/provider-core",
+      "paths": [
+        "collectStreamText.ts"
+      ]
     }
   ]
 }
