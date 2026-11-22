@@ -92,6 +92,7 @@ To add a fix, edit the vendored file, then save the diff:
 | `provider-codex` | An async question whose text was streamed is replaced by an assistant message at turn end | Patched |
 | `provider-codex` | Stop after a turn that completed without background work leaves its still-running native subagents running | Patched |
 | `provider-claude` | Replay rejects recorded `tool_progress` and `tool_use_summary` frames, so recordings with tool use cannot replay | Patched |
+| `provider-claude` | With a custom Claude home, subagent launch and model lookups read the server's Claude home, so resumed subagents lose their launch call | Patched |
 | `client-runtime` | Editing a saved connection fails when a learned route comes before the paired route | Patched |
 | `client-runtime` | A local backend stays blocked when its bearer is stored after a failed first write | Patched |
 | `orchestration-store` | Migration 081 doesn't backfill search text for escaped link labels with no citation | Patched |

@@ -896,6 +896,7 @@ export interface ClaudeAgentSdkSubagentLookupInput {
   readonly sessionId: string;
   readonly agentId: string;
   readonly dir: string | null;
+  readonly environment: NodeJS.ProcessEnv;
   readonly threadId: ThreadId;
   readonly providerSessionId: OrchestrationV2ProviderSession["id"];
 }
@@ -1411,9 +1412,9 @@ const claudeConfigDirOf = (
 // The SDK reads CLAUDE_CONFIG_DIR from process.env. Isolate custom homes in a
 // worker so concurrent providers keep the server's environment.
 const runClaudeWorker = Effect.fn("runClaudeWorker")(function* (input: {
-  readonly method: "forkSession" | "getSessionMessages";
+  readonly method: "forkSession" | "getSessionMessages" | "getSubagentMessages";
   readonly sessionId: string;
-  readonly options?: ForkSessionOptions;
+  readonly options?: object;
   readonly environment: NodeJS.ProcessEnv;
 }) {
   const path = yield* Path.Path;
@@ -1456,6 +1457,18 @@ const runClaudeWorker = Effect.fn("runClaudeWorker")(function* (input: {
   }
   return result.stdout;
 });
+
+const decodeClaudeSubagentMessages = Schema.decodeUnknownEffect(
+  Schema.fromJsonString(
+    Schema.Array(
+      Schema.Struct({
+        type: Schema.String,
+        message: Schema.Unknown,
+        parent_tool_use_id: Schema.optionalKey(Schema.NullOr(Schema.String)),
+      }),
+    ),
+  ),
+);
 
 const forkClaudeSessionInWorker = Effect.fn("forkClaudeSessionInWorker")(function* (
   input: ClaudeAgentSdkSessionForkInput,
@@ -1505,6 +1518,37 @@ export const layerQueryRunner: Layer.Layer<
     const platform = yield* HostProcess.Platform;
     const runFork = Effect.runForkWith(yield* Effect.context<never>());
     const hostEnvironment = yield* HostProcess.Environment;
+    // The SDK reads subagent transcripts from process.env, so a custom home goes through the worker.
+    const readSubagentMessages = Effect.fnUntraced(function* (
+      input: ClaudeAgentSdkSubagentLookupInput,
+      limit?: number,
+    ) {
+      const options = {
+        ...(input.dir === null ? {} : { dir: input.dir }),
+        ...(limit === undefined ? {} : { limit }),
+      };
+      const homeDirectory = yield* HostProcess.HomeDirectory;
+      if (
+        claudeConfigDirOf(path, input.environment, homeDirectory) ===
+        claudeConfigDirOf(path, hostEnvironment, homeDirectory)
+      ) {
+        return yield* Effect.tryPromise({
+          try: () => getSubagentMessages(input.sessionId, input.agentId, options),
+          catch: (cause) => queryRunnerError(cause, "getSubagentMessages"),
+        });
+      }
+      return yield* runClaudeWorker({
+        method: "getSubagentMessages",
+        sessionId: input.sessionId,
+        options: { ...options, agentId: input.agentId },
+        environment: input.environment,
+      }).pipe(
+        Effect.flatMap(decodeClaudeSubagentMessages),
+        Effect.mapError((cause) => queryRunnerError(cause, "getSubagentMessages")),
+        Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawner),
+        Effect.provideService(Path.Path, path),
+      );
+    });
     const portDiscovery = yield* PortScanner.PortDiscovery;
     const processRunner = yield* ProcessRunner.make();
     const readProcessTable = processRunner
@@ -2135,14 +2179,7 @@ export const layerQueryRunner: Layer.Layer<
               agentId: input.agentId,
             },
           });
-          const messages = yield* Effect.tryPromise({
-            try: () =>
-              getSubagentMessages(input.sessionId, input.agentId, {
-                ...(input.dir === null ? {} : { dir: input.dir }),
-                limit: 1,
-              }),
-            catch: (cause) => queryRunnerError(cause, "getSubagentMessages"),
-          });
+          const messages = yield* readSubagentMessages(input, 1);
           const toolUseId = messages[0]?.parent_tool_use_id ?? null;
           yield* logProtocolEvent({
             direction: "incoming",
@@ -2155,15 +2192,7 @@ export const layerQueryRunner: Layer.Layer<
       subagentModel: Effect.fn("ClaudeAgentSdkQueryRunner.subagentModel")(function* (
         input: ClaudeAgentSdkSubagentLookupInput,
       ) {
-        const messages = yield* Effect.tryPromise({
-          try: () =>
-            getSubagentMessages(
-              input.sessionId,
-              input.agentId,
-              input.dir === null ? {} : { dir: input.dir },
-            ),
-          catch: (cause) => queryRunnerError(cause, "getSubagentMessages"),
-        });
+        const messages = yield* readSubagentMessages(input);
         return (
           messages
             .toReversed()
@@ -7456,6 +7485,7 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
               sessionId: nativeThreadId,
               agentId: taskId,
               dir: context.input.runtimePolicy.cwd,
+              environment: adapterOptions.environment,
               threadId: context.input.threadId,
               providerSessionId: input.providerSessionId,
             })
@@ -7492,6 +7522,7 @@ export const makeClaudeAdapterV2 = Effect.fn("makeClaudeAdapterV2")(function* (
               sessionId: resume.nativeThreadId,
               agentId: resume.taskId,
               dir: resume.context.input.runtimePolicy.cwd,
+              environment: adapterOptions.environment,
               threadId: resume.context.input.threadId,
               providerSessionId: input.providerSessionId,
             })

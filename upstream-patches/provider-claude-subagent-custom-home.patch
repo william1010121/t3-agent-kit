@@ -1,0 +1,162 @@
+diff --git a/packages/provider-claude/src/claudeHistoryWorker.ts b/packages/provider-claude/src/claudeHistoryWorker.ts
+--- a/packages/provider-claude/src/claudeHistoryWorker.ts
++++ b/packages/provider-claude/src/claudeHistoryWorker.ts
+@@ -1,12 +1,14 @@
+-import { forkSession, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
++import { forkSession, getSessionMessages, getSubagentMessages } from "@anthropic-ai/claude-agent-sdk";
+ import * as Schema from "effect/Schema";
+ 
+ // Bundled import.meta.main is always true; imports must have no side effects.
+ const decodeHistoryOptions = Schema.decodeSync(
+   Schema.fromJsonString(
+     Schema.Struct({
++      agentId: Schema.optionalKey(Schema.String),
+       dir: Schema.optionalKey(Schema.String),
+       includeSystemMessages: Schema.optionalKey(Schema.Boolean),
++      limit: Schema.optionalKey(Schema.Number),
+       upToMessageId: Schema.optionalKey(Schema.String),
+     }),
+   ),
+@@ -29,8 +31,10 @@
+               .catch(() => undefined);
+             return headMessageId === undefined ? forked : { ...forked, headMessageId };
+           })
+-        : (() => {
+-            throw new Error("Unknown Claude history operation.");
+-          })();
++        : method === "getSubagentMessages"
++          ? await getSubagentMessages(sessionId, options.agentId ?? "", options)
++          : (() => {
++              throw new Error("Unknown Claude history operation.");
++            })();
+   process.stdout.write(JSON.stringify(result));
+ }
+diff --git a/packages/provider-claude/src/orchestration-v2/Adapters/ClaudeAdapterV2.ts b/packages/provider-claude/src/orchestration-v2/Adapters/ClaudeAdapterV2.ts
+--- a/packages/provider-claude/src/orchestration-v2/Adapters/ClaudeAdapterV2.ts
++++ b/packages/provider-claude/src/orchestration-v2/Adapters/ClaudeAdapterV2.ts
+@@ -896,6 +896,7 @@
+   readonly sessionId: string;
+   readonly agentId: string;
+   readonly dir: string | null;
++  readonly environment: NodeJS.ProcessEnv;
+   readonly threadId: ThreadId;
+   readonly providerSessionId: OrchestrationV2ProviderSession["id"];
+ }
+@@ -1411,9 +1412,9 @@
+ // The SDK reads CLAUDE_CONFIG_DIR from process.env. Isolate custom homes in a
+ // worker so concurrent providers keep the server's environment.
+ const runClaudeWorker = Effect.fn("runClaudeWorker")(function* (input: {
+-  readonly method: "forkSession" | "getSessionMessages";
++  readonly method: "forkSession" | "getSessionMessages" | "getSubagentMessages";
+   readonly sessionId: string;
+-  readonly options?: ForkSessionOptions;
++  readonly options?: object;
+   readonly environment: NodeJS.ProcessEnv;
+ }) {
+   const path = yield* Path.Path;
+@@ -1457,6 +1458,18 @@
+   return result.stdout;
+ });
+ 
++const decodeClaudeSubagentMessages = Schema.decodeUnknownEffect(
++  Schema.fromJsonString(
++    Schema.Array(
++      Schema.Struct({
++        type: Schema.String,
++        message: Schema.Unknown,
++        parent_tool_use_id: Schema.optionalKey(Schema.NullOr(Schema.String)),
++      }),
++    ),
++  ),
++);
++
+ const forkClaudeSessionInWorker = Effect.fn("forkClaudeSessionInWorker")(function* (
+   input: ClaudeAgentSdkSessionForkInput,
+ ) {
+@@ -1505,6 +1518,37 @@
+     const platform = yield* HostProcess.Platform;
+     const runFork = Effect.runForkWith(yield* Effect.context<never>());
+     const hostEnvironment = yield* HostProcess.Environment;
++    // The SDK reads subagent transcripts from process.env, so a custom home goes through the worker.
++    const readSubagentMessages = Effect.fnUntraced(function* (
++      input: ClaudeAgentSdkSubagentLookupInput,
++      limit?: number,
++    ) {
++      const options = {
++        ...(input.dir === null ? {} : { dir: input.dir }),
++        ...(limit === undefined ? {} : { limit }),
++      };
++      const homeDirectory = yield* HostProcess.HomeDirectory;
++      if (
++        claudeConfigDirOf(path, input.environment, homeDirectory) ===
++        claudeConfigDirOf(path, hostEnvironment, homeDirectory)
++      ) {
++        return yield* Effect.tryPromise({
++          try: () => getSubagentMessages(input.sessionId, input.agentId, options),
++          catch: (cause) => queryRunnerError(cause, "getSubagentMessages"),
++        });
++      }
++      return yield* runClaudeWorker({
++        method: "getSubagentMessages",
++        sessionId: input.sessionId,
++        options: { ...options, agentId: input.agentId },
++        environment: input.environment,
++      }).pipe(
++        Effect.flatMap(decodeClaudeSubagentMessages),
++        Effect.mapError((cause) => queryRunnerError(cause, "getSubagentMessages")),
++        Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawner),
++        Effect.provideService(Path.Path, path),
++      );
++    });
+     const portDiscovery = yield* PortScanner.PortDiscovery;
+     const processRunner = yield* ProcessRunner.make();
+     const readProcessTable = processRunner
+@@ -2135,14 +2179,7 @@
+               agentId: input.agentId,
+             },
+           });
+-          const messages = yield* Effect.tryPromise({
+-            try: () =>
+-              getSubagentMessages(input.sessionId, input.agentId, {
+-                ...(input.dir === null ? {} : { dir: input.dir }),
+-                limit: 1,
+-              }),
+-            catch: (cause) => queryRunnerError(cause, "getSubagentMessages"),
+-          });
++          const messages = yield* readSubagentMessages(input, 1);
+           const toolUseId = messages[0]?.parent_tool_use_id ?? null;
+           yield* logProtocolEvent({
+             direction: "incoming",
+@@ -2155,15 +2192,7 @@
+       subagentModel: Effect.fn("ClaudeAgentSdkQueryRunner.subagentModel")(function* (
+         input: ClaudeAgentSdkSubagentLookupInput,
+       ) {
+-        const messages = yield* Effect.tryPromise({
+-          try: () =>
+-            getSubagentMessages(
+-              input.sessionId,
+-              input.agentId,
+-              input.dir === null ? {} : { dir: input.dir },
+-            ),
+-          catch: (cause) => queryRunnerError(cause, "getSubagentMessages"),
+-        });
++        const messages = yield* readSubagentMessages(input);
+         return (
+           messages
+             .toReversed()
+@@ -7456,6 +7485,7 @@
+               sessionId: nativeThreadId,
+               agentId: taskId,
+               dir: context.input.runtimePolicy.cwd,
++              environment: adapterOptions.environment,
+               threadId: context.input.threadId,
+               providerSessionId: input.providerSessionId,
+             })
+@@ -7492,6 +7522,7 @@
+               sessionId: resume.nativeThreadId,
+               agentId: resume.taskId,
+               dir: resume.context.input.runtimePolicy.cwd,
++              environment: adapterOptions.environment,
+               threadId: resume.context.input.threadId,
+               providerSessionId: input.providerSessionId,
+             })
