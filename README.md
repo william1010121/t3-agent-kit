@@ -23,6 +23,7 @@ be re-synced from T3 Code with one command.
 | [`@t3-agent-kit/provider-acp`](packages/provider-acp) | ACP adapter: turns any Agent Client Protocol agent into a `ProviderAdapterV2`, including terminals, elicitation forms and an MCP-over-ACP bridge | `packages/provider-acp` |
 | [`@t3-agent-kit/provider-codex`](packages/provider-codex) | Codex adapter: drives `codex app-server` and emits `ProviderAdapterV2` events (turns, tools, approvals, plans, subagents, rollback, fork). Includes a replay test against a real recorded Codex session | `apps/server/src/orchestration-v2/Adapters/CodexAdapterV2.ts` |
 | [`@t3-agent-kit/provider-claude`](packages/provider-claude) | Claude adapter: drives the Claude Agent SDK and emits `ProviderAdapterV2` events. Its `./testkit` replays recorded SDK sessions and records new ones. Reopen the session when a thread's `cwd` changes: like T3 Code, the adapter keeps the live Claude process for a new `cwd` | `apps/server/src/orchestration-v2/Adapters/ClaudeAdapterV2.ts` |
+| [`@t3-agent-kit/client-runtime`](packages/client-runtime) | Client side of T3's WebSocket layer: environment connections, reconnect and wakeups, typed RPC, relay. Thread state sync is not included yet | `packages/client-runtime/src/{connection,rpc,relay,environment}` |
 
 ## Roadmap
 
@@ -32,7 +33,7 @@ be re-synced from T3 Code with one command.
 | 2 | `adapter-codex` (as `provider-codex`) | Done |
 | 2 | `adapter-claude` (as `provider-claude`) | Done |
 | 3 | `orchestrator`: command → event → outbox | Planned |
-| 3 | `client-runtime`: WebSocket connection, reconnect, thread sync | Planned |
+| 3 | `client-runtime`: WebSocket connection, reconnect, RPC, relay | Done (thread sync still planned) |
 
 ## Checkpoint example
 
