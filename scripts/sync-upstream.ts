@@ -59,6 +59,7 @@ const rewrite = (source: string) =>
 
 const isText = (file: string) => /\.(ts|tsx|mts|cts|js|mjs|json|md)$/.test(file);
 const staging = FS.mkdtempSync(Path.join(OS.tmpdir(), "t3-agent-kit-sync-"));
+process.on("exit", () => FS.rmSync(staging, { recursive: true, force: true }));
 const staged: string[] = [];
 
 const stage = (source: string, target: string) => {
@@ -110,7 +111,6 @@ for (const file of staged) {
   FS.mkdirSync(Path.dirname(target), { recursive: true });
   FS.writeFileSync(target, output);
 }
-FS.rmSync(staging, { recursive: true, force: true });
 
 if (check) {
   if (drift.length > 0) {
