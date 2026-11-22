@@ -80,6 +80,62 @@
     "./ShellStream": {
       "types": "./src/orchestration-v2/ShellStream.ts",
       "import": "./src/orchestration-v2/ShellStream.ts"
+    },
+    "./ThreadCommandExecutor": {
+      "types": "./src/orchestration-v2/ThreadCommandExecutor.ts",
+      "import": "./src/orchestration-v2/ThreadCommandExecutor.ts"
+    },
+    "./GuestShareDecider": {
+      "types": "./src/orchestration-v2/GuestShareDecider.ts",
+      "import": "./src/orchestration-v2/GuestShareDecider.ts"
+    },
+    "./ProviderSessionTransitionPolicy": {
+      "types": "./src/orchestration-v2/ProviderSessionTransitionPolicy.ts",
+      "import": "./src/orchestration-v2/ProviderSessionTransitionPolicy.ts"
+    },
+    "./QueuedRunOrder": {
+      "types": "./src/orchestration-v2/QueuedRunOrder.ts",
+      "import": "./src/orchestration-v2/QueuedRunOrder.ts"
+    },
+    "./DispatchModeLimit": {
+      "types": "./src/orchestration-v2/DispatchModeLimit.ts",
+      "import": "./src/orchestration-v2/DispatchModeLimit.ts"
+    },
+    "./ThreadDeletion": {
+      "types": "./src/orchestration-v2/ThreadDeletion.ts",
+      "import": "./src/orchestration-v2/ThreadDeletion.ts"
+    },
+    "./ThreadForkService": {
+      "types": "./src/orchestration-v2/ThreadForkService.ts",
+      "import": "./src/orchestration-v2/ThreadForkService.ts"
+    },
+    "./CheckpointRestoreSafety": {
+      "types": "./src/orchestration-v2/CheckpointRestoreSafety.ts",
+      "import": "./src/orchestration-v2/CheckpointRestoreSafety.ts"
+    },
+    "./IdleCompaction": {
+      "types": "./src/orchestration-v2/IdleCompaction.ts",
+      "import": "./src/orchestration-v2/IdleCompaction.ts"
+    },
+    "./runOutput": {
+      "types": "./src/orchestration-v2/runOutput.ts",
+      "import": "./src/orchestration-v2/runOutput.ts"
+    },
+    "./assistantStreaming": {
+      "types": "./src/orchestration-v2/assistantStreaming.ts",
+      "import": "./src/orchestration-v2/assistantStreaming.ts"
+    },
+    "./ContextHandoffDelivery": {
+      "types": "./src/orchestration-v2/ContextHandoffDelivery.ts",
+      "import": "./src/orchestration-v2/ContextHandoffDelivery.ts"
+    },
+    "./CommandOutputHub": {
+      "types": "./src/orchestration-v2/CommandOutputHub.ts",
+      "import": "./src/orchestration-v2/CommandOutputHub.ts"
+    },
+    "./NotificationMailbox": {
+      "types": "./src/orchestration-v2/NotificationMailbox.ts",
+      "import": "./src/orchestration-v2/NotificationMailbox.ts"
     }
   },
   "imports": {
@@ -93,6 +149,7 @@
   },
   "dependencies": {
     "@t3-agent-kit/contracts": "workspace:*",
+    "@t3-agent-kit/provider-core": "workspace:*",
     "@t3-agent-kit/shared": "workspace:*",
     "@t3-agent-kit/source-control-definitions": "workspace:*",
     "effect": "catalog:"
@@ -100,7 +157,6 @@
   "devDependencies": {
     "@effect/platform-node": "catalog:",
     "@effect/vitest": "catalog:",
-    "@t3-agent-kit/provider-core": "workspace:*",
     "@types/node": "catalog:"
   }
 }
