@@ -128,6 +128,35 @@
         "patches/micromark@4.0.2.patch",
         "patches/mdast-util-to-hast@13.2.1.patch"
       ]
+    },
+    {
+      "to": "packages/provider-codex",
+      "from": "apps/server/src",
+      "into": "src",
+      "paths": [
+        "attachmentPaths.ts",
+        "attachmentStore.ts",
+        "codexModelOptions.ts",
+        "imageMime.ts",
+        "mcpApps/McpAppSnapshot.ts",
+        "orchestration-v2/Adapters/CodexAdapterV2.ts",
+        "orchestration-v2/Adapters/ProviderTextDeltaCoalescer.ts",
+        "provider/CodexDeveloperInstructions.ts",
+        "provider/CodexManagedErrors.ts",
+        "provider/CodexMcpElicitation.ts",
+        "provider/CodexProvider.ts",
+        "provider/CodexThreadRevert.ts",
+        "provider/CodexToolPresentation.ts",
+        "provider/CodexTurnTokenUsage.ts",
+        "provider/DocumentText.ts",
+        "provider/Drivers/CodexHomeLayout.ts",
+        "provider/EventNdjsonLogger.ts",
+        "provider/codexLaunchArgs.ts",
+        "provider/codexUsageLimits.ts",
+        "provider/providerCompatibility.ts",
+        "resourceTelemetry/ResourceAttribution.ts",
+        "orchestration-v2/testkit/fixtures/simple/codex_transcript.ndjson"
+      ]
     }
   ]
 }

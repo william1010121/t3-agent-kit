@@ -1,0 +1,40 @@
+{
+  "name": "@t3-agent-kit/provider-codex",
+  "version": "0.0.0",
+  "description": "T3 Code's Codex adapter: drives `codex app-server` and emits ProviderAdapterV2 events",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/orchestration-v2/Adapters/CodexAdapterV2.ts",
+      "import": "./src/orchestration-v2/Adapters/CodexAdapterV2.ts"
+    },
+    "./config": {
+      "types": "./src/config.ts",
+      "import": "./src/config.ts"
+    },
+    "./PortScanner": {
+      "types": "./src/preview/PortScanner.ts",
+      "import": "./src/preview/PortScanner.ts"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "effect-tsgo tsrs --noEmit"
+  },
+  "dependencies": {
+    "@t3-agent-kit/contracts": "workspace:*",
+    "@t3-agent-kit/provider-core": "workspace:*",
+    "@t3-agent-kit/shared": "workspace:*",
+    "effect": "catalog:",
+    "effect-codex-app-server": "workspace:*"
+  },
+  "devDependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/vitest": "catalog:",
+    "@t3-agent-kit/provider-testing": "workspace:*",
+    "@types/node": "catalog:"
+  }
+}
