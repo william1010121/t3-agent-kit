@@ -8473,10 +8473,23 @@ export const makeCodexAdapterV2 = Effect.fn("makeCodexAdapterV2")(function* (
                 lineageRoots.some(
                   (root) => context === root || isDescendantCodexTurn(context, root),
                 );
+              // A root that settled without background work is dropped, so its native subagents
+              // still running have no root left to be found through.
+              const orphanedOnThread = (context: ActiveCodexTurnContext) => {
+                if (turnInput.requestRuntimeRestart !== true || context.subagent === null)
+                  return false;
+                let root = context;
+                while (root.subagent !== null) root = root.subagent.parentContext;
+                return (
+                  root.providerThread.id === turnInput.providerThread.id &&
+                  !activeTurnContexts.includes(root)
+                );
+              };
               const interruptTargetContexts = [
                 ...(activeTurn === undefined ? [] : [activeTurn]),
                 ...activeTurnContexts.filter(
-                  (candidate) => candidate !== activeTurn && inLineage(candidate),
+                  (candidate) =>
+                    candidate !== activeTurn && (inLineage(candidate) || orphanedOnThread(candidate)),
                 ),
                 ...settledTurnContexts.filter(
                   (candidate) =>
