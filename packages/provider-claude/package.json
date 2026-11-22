@@ -1,0 +1,58 @@
+{
+  "name": "@t3-agent-kit/provider-claude",
+  "version": "0.0.0",
+  "description": "T3 Code's Claude adapter: drives the Claude Agent SDK and emits ProviderAdapterV2 events",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/orchestration-v2/Adapters/ClaudeAdapterV2.ts",
+      "import": "./src/orchestration-v2/Adapters/ClaudeAdapterV2.ts"
+    },
+    "./testkit": {
+      "types": "./src/orchestration-v2/Adapters/ClaudeAdapterV2.testkit.ts",
+      "import": "./src/orchestration-v2/Adapters/ClaudeAdapterV2.testkit.ts"
+    },
+    "./ProviderAdapterRegistry": {
+      "types": "./src/orchestration-v2/ProviderAdapterRegistry.ts",
+      "import": "./src/orchestration-v2/ProviderAdapterRegistry.ts"
+    },
+    "./config": {
+      "types": "./src/config.ts",
+      "import": "./src/config.ts"
+    },
+    "./serverSettings": {
+      "types": "./src/serverSettings.ts",
+      "import": "./src/serverSettings.ts"
+    },
+    "./PortScanner": {
+      "types": "./src/preview/PortScanner.ts",
+      "import": "./src/preview/PortScanner.ts"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "effect-tsgo tsrs --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.321",
+    "@anthropic-ai/sdk": "0.93.0",
+    "@effect/platform-node": "catalog:",
+    "@effect/platform-node-shared": "catalog:",
+    "@t3-agent-kit/contracts": "workspace:*",
+    "@t3-agent-kit/provider-acp": "workspace:*",
+    "@t3-agent-kit/provider-core": "workspace:*",
+    "@t3-agent-kit/provider-testing": "workspace:*",
+    "@t3-agent-kit/shared": "workspace:*",
+    "diff": "8.0.3",
+    "effect": "catalog:",
+    "effect-codex-app-server": "workspace:*",
+    "yaml": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/vitest": "catalog:",
+    "@types/node": "catalog:"
+  }
+}

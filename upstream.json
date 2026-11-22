@@ -126,7 +126,8 @@
         "patches/micromark-extension-llm-math@3.1.0.patch",
         "patches/micromark-extension-gfm-table@2.1.1.patch",
         "patches/micromark@4.0.2.patch",
-        "patches/mdast-util-to-hast@13.2.1.patch"
+        "patches/mdast-util-to-hast@13.2.1.patch",
+        "patches/@effect__platform-node-shared@4.1.5.patch"
       ]
     },
     {
@@ -156,6 +157,50 @@
         "provider/providerCompatibility.ts",
         "resourceTelemetry/ResourceAttribution.ts",
         "orchestration-v2/testkit/fixtures/simple/codex_transcript.ndjson"
+      ]
+    },
+    {
+      "to": "packages/provider-claude",
+      "from": "apps/server/src",
+      "into": "src",
+      "paths": [
+        "attachmentPaths.ts",
+        "attachmentStore.ts",
+        "claudeModelOptions.ts",
+        "imageMime.ts",
+        "mcpApps/McpAppSnapshot.ts",
+        "orchestration-v2/Adapters/ClaudeAdapterV2.testkit.ts",
+        "orchestration-v2/Adapters/ClaudeAdapterV2.ts",
+        "orchestration-v2/Adapters/ClaudeTaskOutputTail.ts",
+        "orchestration-v2/Adapters/ProviderTextDeltaCoalescer.ts",
+        "orchestration-v2/Adapters/claudeWorkflowProgress.ts",
+        "orchestration-v2/unknownField.ts",
+        "orchestration-v2/workflowAgentAnswers.ts",
+        "orchestration-v2/workflowAgentTranscript.ts",
+        "orchestration-v2/workflowFileRead.ts",
+        "process/SpawnWorker.ts",
+        "process/providerProcesses.ts",
+        "processRunner.ts",
+        "provider/ClaudeModelCatalog.ts",
+        "provider/ClaudeModelManifest.ts",
+        "provider/ClaudeTurnTokenUsage.ts",
+        "provider/CodexMcpElicitation.ts",
+        "provider/DocumentText.ts",
+        "provider/Drivers/ClaudeExecutable.ts",
+        "provider/Drivers/ClaudeHome.ts",
+        "provider/Drivers/ClaudeSkillDispatch.ts",
+        "provider/Drivers/ClaudeSkills.ts",
+        "provider/EventNdjsonLogger.ts",
+        "provider/ModelManifest.ts",
+        "provider/ProviderInstallationGate.ts",
+        "provider/claudeResetCredits.ts",
+        "provider/claudeUsageLimits.ts",
+        "provider/providerCompatibility.ts",
+        "resourceTelemetry/ResourceAttribution.ts",
+        "orchestration-v2/testkit/fixtures/simple/claude_transcript.ndjson",
+        "provider/model-manifest.json",
+        "claude-history-worker.ts",
+        "claudeHistoryWorker.ts"
       ]
     }
   ]

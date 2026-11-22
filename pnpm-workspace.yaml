@@ -5,6 +5,7 @@ catalog:
   "@effect/language-service": 0.87.5
   "@effect/openapi-generator": 4.1.5
   "@effect/platform-node": 4.1.5
+  "@effect/platform-node-shared": 4.1.5
   "@effect/tsgo": 0.67.1
   "@effect/vitest": 4.1.5
   "@types/node": 24.12.4
@@ -28,6 +29,14 @@ catalog:
 
 # Same markdown tokenizer pins and patches as upstream T3 Code (packages/shared relies on them).
 overrides:
+  "@anthropic-ai/claude-agent-sdk>@anthropic-ai/claude-agent-sdk-darwin-arm64": "-"
+  "@anthropic-ai/claude-agent-sdk>@anthropic-ai/claude-agent-sdk-darwin-x64": "-"
+  "@anthropic-ai/claude-agent-sdk>@anthropic-ai/claude-agent-sdk-linux-arm64": "-"
+  "@anthropic-ai/claude-agent-sdk>@anthropic-ai/claude-agent-sdk-linux-arm64-musl": "-"
+  "@anthropic-ai/claude-agent-sdk>@anthropic-ai/claude-agent-sdk-linux-x64": "-"
+  "@anthropic-ai/claude-agent-sdk>@anthropic-ai/claude-agent-sdk-linux-x64-musl": "-"
+  "@anthropic-ai/claude-agent-sdk>@anthropic-ai/claude-agent-sdk-win32-arm64": "-"
+  "@anthropic-ai/claude-agent-sdk>@anthropic-ai/claude-agent-sdk-win32-x64": "-"
   mdast-util-math: 3.0.0
   micromark-extension-llm-math: 3.1.0
   micromark: 4.0.2
@@ -36,6 +45,7 @@ overrides:
   micromark-extension-gfm-table: 2.1.1
 
 patchedDependencies:
+  "@effect/platform-node-shared@4.1.5": patches/@effect__platform-node-shared@4.1.5.patch
   mdast-util-math@3.0.0: patches/mdast-util-math@3.0.0.patch
   micromark-extension-llm-math@3.1.0: patches/micromark-extension-llm-math@3.1.0.patch
   micromark-extension-gfm-table@2.1.1: patches/micromark-extension-gfm-table@2.1.1.patch
