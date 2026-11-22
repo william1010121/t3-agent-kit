@@ -336,6 +336,8 @@ function isClaudeSdkReplayMessage(frame: unknown): frame is SDKMessage {
     type === "system" ||
     type === "stream_event" ||
     type === "rate_limit_event" ||
+    type === "tool_progress" ||
+    type === "tool_use_summary" ||
     // The SDK types omit command_lifecycle for prompt uuids.
     type === "command_lifecycle"
   );
