@@ -1,0 +1,45 @@
+{
+  "repository": "https://github.com/pingdotgg/t3code.git",
+  "commit": "c198f73b3766090e02cace1a8b14f439f9fc63b6",
+  "rewrites": {
+    "@t3tools/contracts": "@t3-agent-kit/contracts",
+    "@t3tools/provider-core/server/ProviderAdapter": "@t3-agent-kit/provider-adapter",
+    "vite-plus/test": "vitest"
+  },
+  "packages": [
+    {
+      "to": "packages/effect-acp",
+      "from": "packages/effect-acp",
+      "paths": [
+        "src",
+        "test",
+        "scripts"
+      ]
+    },
+    {
+      "to": "packages/effect-codex-app-server",
+      "from": "packages/effect-codex-app-server",
+      "paths": [
+        "src",
+        "test",
+        "scripts"
+      ]
+    },
+    {
+      "to": "packages/contracts",
+      "from": "packages/contracts",
+      "paths": [
+        "src"
+      ]
+    },
+    {
+      "to": "packages/provider-adapter",
+      "from": "packages/provider-core/src/server",
+      "paths": [
+        "ProviderAdapter.ts",
+        "selectionTransition.ts"
+      ],
+      "into": "src"
+    }
+  ]
+}
