@@ -60,7 +60,6 @@ const rewrite = (source: string) =>
 const isText = (file: string) => /\.(ts|tsx|mts|cts|js|mjs|json|md)$/.test(file);
 const staging = FS.mkdtempSync(Path.join(OS.tmpdir(), "t3-agent-kit-sync-"));
 process.on("exit", () => FS.rmSync(staging, { recursive: true, force: true }));
-const staged: string[] = [];
 
 const stage = (source: string, target: string) => {
   const stat = FS.statSync(source);
@@ -72,7 +71,13 @@ const stage = (source: string, target: string) => {
   const output = isText(source) ? Buffer.from(rewrite(raw.toString("utf8"))) : raw;
   FS.mkdirSync(Path.dirname(Path.join(staging, target)), { recursive: true });
   FS.writeFileSync(Path.join(staging, target), output);
-  staged.push(target);
+};
+
+const listFiles = (base: string, entry: string): string[] => {
+  const full = Path.join(base, entry);
+  if (!FS.existsSync(full)) return [];
+  if (!FS.statSync(full).isDirectory()) return [entry];
+  return FS.readdirSync(full).flatMap((child) => listFiles(base, Path.join(entry, child)));
 };
 
 for (const mapping of config.packages) {
@@ -100,7 +105,19 @@ if (!check) {
   }
 }
 
+// Patches may add or delete files, so read the result back after applying them.
+const staged = listFiles(staging, "");
+const stagedSet = new Set(staged);
 const drift: string[] = [];
+if (check) {
+  for (const mapping of config.packages) {
+    for (const entry of mapping.paths) {
+      for (const file of listFiles(root, Path.join(mapping.to, mapping.into ?? "", entry))) {
+        if (!stagedSet.has(file)) drift.push(file);
+      }
+    }
+  }
+}
 for (const file of staged) {
   const output = FS.readFileSync(Path.join(staging, file));
   const target = Path.join(root, file);

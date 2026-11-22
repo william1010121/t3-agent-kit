@@ -782,6 +782,11 @@ export function makeSourceControlDefinitionRegistry(
     }
     return undefined;
   };
+  // Hosts with several spellings of one repository, like Azure DevOps, compare by canonical key.
+  const canonicalChangeRequestRepository = (link: { readonly host: string; readonly repository: string }) => {
+    const key = `${link.host}/${link.repository}`;
+    return repositoryKeyOwner(key)?.canonical ?? canonicalKeyPath(key);
+  };
   const remoteOwner = (remote: GitRemoteHost) =>
     recognitionOrder.find((definition) => definition.recognizeRemote(remote) !== null);
   const repositorySelector = (identity: RepositorySelectorIdentity | null | undefined) =>
@@ -888,8 +893,7 @@ export function makeSourceControlDefinitionRegistry(
       return (
         a !== undefined &&
         b !== undefined &&
-        a.host === b.host &&
-        a.repository === b.repository &&
+        canonicalChangeRequestRepository(a) === canonicalChangeRequestRepository(b) &&
         a.number === b.number &&
         a.authority === b.authority
       );

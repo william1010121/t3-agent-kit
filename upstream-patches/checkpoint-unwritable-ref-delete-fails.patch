@@ -1,0 +1,14 @@
+diff --git a/packages/checkpoint/src/vcs/GitVcsDriver.ts b/packages/checkpoint/src/vcs/GitVcsDriver.ts
+index 4cd4f76..62b3faf 100644
+--- a/packages/checkpoint/src/vcs/GitVcsDriver.ts
++++ b/packages/checkpoint/src/vcs/GitVcsDriver.ts
+@@ -2520,8 +2520,8 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
+             execute({
+               operation: "GitVcsDriver.checkpoints.deleteCheckpointRefs",
+               cwd: input.cwd,
++              // A missing ref exits 0, so a nonzero exit means the ref was kept.
+               args: ["update-ref", "-d", checkpointRef],
+-              allowNonZeroExit: true,
+             }),
+           { discard: true },
+         );

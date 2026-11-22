@@ -8462,11 +8462,26 @@ export const makeCodexAdapterV2 = Effect.fn("makeCodexAdapterV2")(function* (
                       (candidate) => candidate.providerThread.id === turnInput.providerThread.id,
                     )
                   : undefined);
+              // A root that settled without background work is dropped, so its native subagents
+              // still running stand in as roots of this Stop.
+              const orphanedSubagents =
+                turnInput.requestRuntimeRestart === true
+                  ? activeTurnContexts.filter((context) => {
+                      if (context.subagent === null) return false;
+                      let root = context;
+                      while (root.subagent !== null) root = root.subagent.parentContext;
+                      return (
+                        root.providerThread.id === turnInput.providerThread.id &&
+                        !activeTurnContexts.includes(root)
+                      );
+                    })
+                  : [];
               const lineageRoots = Array.from(
                 new Set([
                   ...(activeTurn === undefined ? [] : [activeTurn]),
                   ...(startingRetry === undefined ? [] : [startingRetry]),
                   ...goalTurns,
+                  ...orphanedSubagents,
                 ]),
               );
               const inLineage = (context: ActiveCodexTurnContext) =>

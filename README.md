@@ -24,7 +24,7 @@ be re-synced from T3 Code with one command.
 | [`@t3-agent-kit/provider-codex`](packages/provider-codex) | Codex adapter: drives `codex app-server` and emits `ProviderAdapterV2` events (turns, tools, approvals, plans, subagents, rollback, fork). Includes a replay test against a real recorded Codex session | `apps/server/src/orchestration-v2/Adapters/CodexAdapterV2.ts` |
 | [`@t3-agent-kit/provider-claude`](packages/provider-claude) | Claude adapter: drives the Claude Agent SDK and emits `ProviderAdapterV2` events. Its `./testkit` replays recorded SDK sessions and records new ones. Reopen the session when a thread's `cwd` changes: like T3 Code, the adapter keeps the live Claude process for a new `cwd` | `apps/server/src/orchestration-v2/Adapters/ClaudeAdapterV2.ts` |
 | [`@t3-agent-kit/client-runtime`](packages/client-runtime) | Client side of T3's WebSocket layer: environment connections, reconnect and wakeups, typed RPC, relay. Thread state sync is not included yet | `packages/client-runtime/src/{connection,rpc,relay,environment}` |
-| [`@t3-agent-kit/orchestration-store`](packages/orchestration-store) | Event-sourcing storage: SQLite event store, command receipts, durable effect outbox (lease, retry, cancel, recovery after process loss), T3's full schema migrations, and the project aggregate (`ProjectCommands` decider + `ProjectStore` projection) as a worked command → event → projection example. `CommandPolicy` maps provider capabilities to steering/fork policy. `persistence/Sqlite` opens and migrates a database. The thread read model: `EventSink` applies events to `ProjectionStore`, `ProjectionMaintenance` rebuilds it, `ThreadStream`/`WireProjection` page it to clients, `ThreadSearch`/`ThreadFind` search it | `apps/server/src/{orchestration-v2,persistence}` |
+| [`@t3-agent-kit/orchestration-store`](packages/orchestration-store) | Event-sourcing storage: SQLite event store, command receipts, durable effect outbox (lease, retry, cancel, recovery after process loss), T3's full schema migrations, and the project aggregate (`ProjectCommands` decider + `ProjectStore` projection) as a worked command → event → projection example. `CommandPolicy` maps provider capabilities to steering/fork policy. `persistence/Sqlite` opens and migrates a database. The thread read model: `EventSink` applies events to `ProjectionStore`, `ProjectionMaintenance` rebuilds it, `ThreadStream`/`WireProjection` page it to clients, `ThreadSearch`/`ThreadFind` search it. Self-contained thread rules: `ThreadCommandExecutor` (one command at a time per thread), `ThreadForkService`, `QueuedRunOrder`, `DispatchModeLimit` (runtime-mode ceilings), `ProviderSessionTransitionPolicy`, `ThreadDeletion`, `GuestShareDecider`, `CheckpointRestoreSafety`, `IdleCompaction`, `ContextHandoffDelivery`, `CommandOutputHub`, `NotificationMailbox`, `runOutput`, `assistantStreaming` | `apps/server/src/{orchestration-v2,persistence}` |
 | [`@t3-agent-kit/source-control-definitions`](packages/source-control-definitions) | Host definitions for GitHub, GitLab, Azure DevOps, Bitbucket, Forgejo, GitCafe, Cursor Origin and TanStack Source: parse change request URLs, recognize remotes, link pull requests to threads (`core/threadPullRequests`) | `packages/source-control-{core,definitions,<host>}/src/shared` |
 
 ## Roadmap
@@ -34,7 +34,7 @@ be re-synced from T3 Code with one command.
 | 2 | `replay` (as `provider-testing`) and `adapter-acp` (as `provider-acp`) | Done |
 | 2 | `adapter-codex` (as `provider-codex`) | Done |
 | 2 | `adapter-claude` (as `provider-claude`) | Done |
-| 3 | `orchestrator`: command → event → outbox | Storage, project decider and thread projection done (`orchestration-store`); thread decider and effect worker still planned |
+| 3 | `orchestrator`: command → event → outbox | Storage, project decider and thread projection done (`orchestration-store`); thread decider rules done; `Orchestrator` and effect worker still planned |
 | 3 | `client-runtime`: WebSocket connection, reconnect, RPC, relay | Done (thread sync still planned) |
 
 ## Checkpoint example
@@ -88,13 +88,19 @@ To add a fix, edit the vendored file, then save the diff:
 |---|---|---|
 | `checkpoint` | Undo after a turn that started on a clean checkout leaves submodule edits in place | Patched |
 | `checkpoint` | Restore overwrites a submodule listed in `excludePaths` | Patched |
+| `checkpoint` | `deleteCheckpointRefs` reports success when a checkpoint ref could not be deleted (for example, a held ref lock) | Patched |
 | `provider-codex` | An async question whose text was streamed is replaced by an assistant message at turn end | Patched |
+| `provider-codex` | Stop after a turn that completed without background work leaves its still-running native subagents running | Patched |
+| `provider-claude` | Replay rejects recorded `tool_progress` and `tool_use_summary` frames, so recordings with tool use cannot replay | Patched |
+| `provider-claude` | With a custom Claude home, subagent launch and model lookups read the server's Claude home, so resumed subagents lose their launch call | Patched |
 | `client-runtime` | Editing a saved connection fails when a learned route comes before the paired route | Patched |
 | `client-runtime` | A local backend stays blocked when its bearer is stored after a failed first write | Patched |
+| `source-control-definitions` | `isSameChangeRequest` treats the `dev.azure.com` and `*.visualstudio.com` URLs of one Azure DevOps pull request as different | Patched |
 | `orchestration-store` | Migration 081 doesn't backfill search text for escaped link labels with no citation | Patched |
 | `orchestration-store` | Replaying a migration baseline resets project settings (auto-pull, env mode, icon, pins) | Patched |
 | `orchestration-store` | `project.create` accepts script IDs that keybindings reject | Patched |
 | `orchestration-store` | Conditional subagent writes fail after a projection merge keeps an omitted `completionDelivery` (stored keys reordered) | Patched |
+| `orchestration-store` | Sending a guest message older than the 20 newest resolved ones deletes its attached files | Patched |
 | `provider-claude` | Changing `cwd` without reopening the session keeps Claude in the old checkout | By design upstream; reopen the session |
 
 ```sh
