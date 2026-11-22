@@ -680,7 +680,7 @@ export const make = Effect.gen(function* () {
               .get(registration.target.connectionId)
               .pipe(Effect.orElseSucceed(() => Option.none<ConnectionCredential>()));
             bearerChanged =
-              Option.isSome(stored) && !Equal.equals(stored.value, registration.credential);
+              Option.isNone(stored) || !Equal.equals(stored.value, registration.credential);
           }
 
           if (persisted) {
