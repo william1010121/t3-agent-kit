@@ -2520,8 +2520,8 @@ export const makeVcsDriverShape = Effect.fn("makeGitVcsDriverShape")(function* (
             execute({
               operation: "GitVcsDriver.checkpoints.deleteCheckpointRefs",
               cwd: input.cwd,
+              // A missing ref exits 0, so a nonzero exit means the ref was kept.
               args: ["update-ref", "-d", checkpointRef],
-              allowNonZeroExit: true,
             }),
           { discard: true },
         );

@@ -88,6 +88,7 @@ To add a fix, edit the vendored file, then save the diff:
 |---|---|---|
 | `checkpoint` | Undo after a turn that started on a clean checkout leaves submodule edits in place | Patched |
 | `checkpoint` | Restore overwrites a submodule listed in `excludePaths` | Patched |
+| `checkpoint` | `deleteCheckpointRefs` reports success when a checkpoint ref could not be deleted (for example, a held ref lock) | Patched |
 | `provider-codex` | An async question whose text was streamed is replaced by an assistant message at turn end | Patched |
 | `client-runtime` | Editing a saved connection fails when a learned route comes before the paired route | Patched |
 | `client-runtime` | A local backend stays blocked when its bearer is stored after a failed first write | Patched |
