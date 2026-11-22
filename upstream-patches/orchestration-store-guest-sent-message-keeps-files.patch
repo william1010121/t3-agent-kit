@@ -1,0 +1,34 @@
+diff --git a/packages/orchestration-store/src/orchestration-v2/GuestShareDecider.ts b/packages/orchestration-store/src/orchestration-v2/GuestShareDecider.ts
+index 1339370..0069953 100644
+--- a/packages/orchestration-store/src/orchestration-v2/GuestShareDecider.ts
++++ b/packages/orchestration-store/src/orchestration-v2/GuestShareDecider.ts
+@@ -63,12 +63,18 @@ export function releasedGuestAttachmentIds(
+     .filter((id) => !kept.has(id));
+ }
+ 
+-/** Keeps every pending message and only the newest resolved ones. */
+-function trimResolved(messages: ReadonlyArray<ThreadGuestMessage>): Array<ThreadGuestMessage> {
++/**
++ * Keeps every pending message and only the newest resolved ones. `justResolved` stays this once,
++ * so `releasedGuestAttachmentIds` still sees it was sent rather than dropped.
++ */
++function trimResolved(
++  messages: ReadonlyArray<ThreadGuestMessage>,
++  justResolved?: GuestMessageId,
++): Array<ThreadGuestMessage> {
+   let resolvedBudget = GUEST_RESOLVED_MESSAGE_LIMIT;
+   const kept: Array<ThreadGuestMessage> = [];
+   for (const message of messages.toReversed()) {
+-    if (message.status !== "pending") {
++    if (message.status !== "pending" && message.id !== justResolved) {
+       if (resolvedBudget === 0) continue;
+       resolvedBudget -= 1;
+     }
+@@ -92,6 +98,7 @@ const resolveMessage = (
+       share.messages.map((candidate) =>
+         candidate.id === guestMessageId ? { ...candidate, status } : candidate,
+       ),
++      guestMessageId,
+     ),
+   });
+ };

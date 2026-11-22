@@ -95,6 +95,7 @@ To add a fix, edit the vendored file, then save the diff:
 | `orchestration-store` | Replaying a migration baseline resets project settings (auto-pull, env mode, icon, pins) | Patched |
 | `orchestration-store` | `project.create` accepts script IDs that keybindings reject | Patched |
 | `orchestration-store` | Conditional subagent writes fail after a projection merge keeps an omitted `completionDelivery` (stored keys reordered) | Patched |
+| `orchestration-store` | Sending a guest message older than the 20 newest resolved ones deletes its attached files | Patched |
 | `provider-claude` | Changing `cwd` without reopening the session keeps Claude in the old checkout | By design upstream; reopen the session |
 
 ```sh
