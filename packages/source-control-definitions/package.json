@@ -1,0 +1,43 @@
+{
+  "name": "@t3-agent-kit/source-control-definitions",
+  "version": "0.0.0",
+  "description": "T3 Code's source control host definitions: change request URL parsing, remotes and thread pull request links for GitHub, GitLab, Azure DevOps, Bitbucket, Forgejo and more",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./registry": {
+      "types": "./src/registry.ts",
+      "import": "./src/registry.ts"
+    },
+    "./core/*": {
+      "types": "./src/core/*.ts",
+      "import": "./src/core/*.ts"
+    }
+  },
+  "imports": {
+    "#source-control-core/shared/*": "./src/core/*.ts",
+    "#source-control-github/shared/*": "./src/github/*.ts",
+    "#source-control-gitlab/shared/*": "./src/gitlab/*.ts",
+    "#source-control-azure-devops/shared/*": "./src/azure-devops/*.ts",
+    "#source-control-bitbucket/shared/*": "./src/bitbucket/*.ts",
+    "#source-control-forgejo/shared/*": "./src/forgejo/*.ts",
+    "#source-control-gitcafe/shared/*": "./src/gitcafe/*.ts",
+    "#source-control-cursor-origin/shared/*": "./src/cursor-origin/*.ts",
+    "#source-control-tanstack-source/shared/*": "./src/tanstack-source/*.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "effect-tsgo tsrs --noEmit"
+  },
+  "dependencies": {
+    "@t3-agent-kit/contracts": "workspace:*",
+    "@t3-agent-kit/shared": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "vitest": "catalog:"
+  }
+}

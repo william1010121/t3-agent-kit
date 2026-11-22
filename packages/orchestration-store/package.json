@@ -48,7 +48,42 @@
     "./CommandPolicy": {
       "types": "./src/orchestration-v2/CommandPolicy.ts",
       "import": "./src/orchestration-v2/CommandPolicy.ts"
+    },
+    "./ProjectionStore": {
+      "types": "./src/orchestration-v2/ProjectionStore.ts",
+      "import": "./src/orchestration-v2/ProjectionStore.ts"
+    },
+    "./EventSink": {
+      "types": "./src/orchestration-v2/EventSink.ts",
+      "import": "./src/orchestration-v2/EventSink.ts"
+    },
+    "./ProjectionMaintenance": {
+      "types": "./src/orchestration-v2/ProjectionMaintenance.ts",
+      "import": "./src/orchestration-v2/ProjectionMaintenance.ts"
+    },
+    "./ThreadStream": {
+      "types": "./src/orchestration-v2/ThreadStream.ts",
+      "import": "./src/orchestration-v2/ThreadStream.ts"
+    },
+    "./WireProjection": {
+      "types": "./src/orchestration-v2/WireProjection.ts",
+      "import": "./src/orchestration-v2/WireProjection.ts"
+    },
+    "./ThreadSearch": {
+      "types": "./src/orchestration-v2/ThreadSearch.ts",
+      "import": "./src/orchestration-v2/ThreadSearch.ts"
+    },
+    "./ThreadFind": {
+      "types": "./src/orchestration-v2/ThreadFind.ts",
+      "import": "./src/orchestration-v2/ThreadFind.ts"
+    },
+    "./ShellStream": {
+      "types": "./src/orchestration-v2/ShellStream.ts",
+      "import": "./src/orchestration-v2/ShellStream.ts"
     }
+  },
+  "imports": {
+    "#source-control-core/shared/*": "./src/_shims/source-control-core/*.ts"
   },
   "files": [
     "src"
@@ -59,11 +94,13 @@
   "dependencies": {
     "@t3-agent-kit/contracts": "workspace:*",
     "@t3-agent-kit/shared": "workspace:*",
+    "@t3-agent-kit/source-control-definitions": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {
     "@effect/platform-node": "catalog:",
     "@effect/vitest": "catalog:",
+    "@t3-agent-kit/provider-core": "workspace:*",
     "@types/node": "catalog:"
   }
 }
