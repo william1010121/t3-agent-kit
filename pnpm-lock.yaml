@@ -242,6 +242,9 @@ importers:
       '@t3-agent-kit/shared':
         specifier: workspace:*
         version: link:../shared
+      '@t3-agent-kit/source-control-definitions':
+        specifier: workspace:*
+        version: link:../source-control-definitions
       effect:
         specifier: 'catalog:'
         version: 4.1.5
@@ -252,6 +255,9 @@ importers:
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.1.5(effect@4.1.5)(vitest@5.1.1(@opentelemetry/api@1.10.0)(@types/node@24.12.4)(vite@7.3.8(@types/node@24.12.4)(yaml@2.9.1)))
+      '@t3-agent-kit/provider-core':
+        specifier: workspace:*
+        version: link:../provider-core
       '@types/node':
         specifier: 'catalog:'
         version: 24.12.4
@@ -507,6 +513,25 @@ importers:
       micromark-util-types:
         specifier: 'catalog:'
         version: 2.0.2
+
+  packages/source-control-definitions:
+    dependencies:
+      '@t3-agent-kit/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@t3-agent-kit/shared':
+        specifier: workspace:*
+        version: link:../shared
+      effect:
+        specifier: 'catalog:'
+        version: 4.1.5
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.4
+      vitest:
+        specifier: 'catalog:'
+        version: 5.1.1(@opentelemetry/api@1.10.0)(@types/node@24.12.4)(vite@7.3.8(@types/node@24.12.4)(yaml@2.9.1))
 
 packages:
 

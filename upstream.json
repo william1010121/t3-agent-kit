@@ -9,7 +9,15 @@
     "@t3tools/provider-acp": "@t3-agent-kit/provider-acp",
     "@t3tools/source-control-core": "#source-control-core",
     "vite-plus/test": "vitest",
-    "@t3tools/client-runtime": "@t3-agent-kit/client-runtime"
+    "@t3tools/client-runtime": "@t3-agent-kit/client-runtime",
+    "@t3tools/source-control-github": "#source-control-github",
+    "@t3tools/source-control-gitlab": "#source-control-gitlab",
+    "@t3tools/source-control-azure-devops": "#source-control-azure-devops",
+    "@t3tools/source-control-bitbucket": "#source-control-bitbucket",
+    "@t3tools/source-control-forgejo": "#source-control-forgejo",
+    "@t3tools/source-control-gitcafe": "#source-control-gitcafe",
+    "@t3tools/source-control-cursor-origin": "#source-control-cursor-origin",
+    "@t3tools/source-control-tanstack-source": "#source-control-tanstack-source"
   },
   "packages": [
     {
@@ -307,13 +315,121 @@
       ]
     },
     {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-core/src/shared",
+      "into": "src/core",
+      "paths": [
+        "definition.ts",
+        "threadPullRequests.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-definitions/src",
+      "into": "src",
+      "paths": [
+        "registry.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-github/src/shared",
+      "into": "src/github",
+      "paths": [
+        "definition.test.ts",
+        "definition.ts",
+        "gitHubMedia.ts",
+        "icon.ts",
+        "referenceAutolinks.test.ts",
+        "referenceAutolinks.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-gitlab/src/shared",
+      "into": "src/gitlab",
+      "paths": [
+        "definition.test.ts",
+        "definition.ts",
+        "icon.ts",
+        "referenceAutolinks.test.ts",
+        "referenceAutolinks.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-azure-devops/src/shared",
+      "into": "src/azure-devops",
+      "paths": [
+        "definition.test.ts",
+        "definition.ts",
+        "icon.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-bitbucket/src/shared",
+      "into": "src/bitbucket",
+      "paths": [
+        "definition.test.ts",
+        "definition.ts",
+        "icon.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-forgejo/src/shared",
+      "into": "src/forgejo",
+      "paths": [
+        "definition.test.ts",
+        "definition.ts",
+        "icon.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-gitcafe/src/shared",
+      "into": "src/gitcafe",
+      "paths": [
+        "definition.test.ts",
+        "definition.ts",
+        "icon.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-cursor-origin/src/shared",
+      "into": "src/cursor-origin",
+      "paths": [
+        "definition.ts",
+        "icon.ts"
+      ]
+    },
+    {
+      "to": "packages/source-control-definitions",
+      "from": "packages/source-control-tanstack-source/src/shared",
+      "into": "src/tanstack-source",
+      "paths": [
+        "definition.test.ts",
+        "definition.ts",
+        "icon.ts"
+      ]
+    },
+    {
       "to": "packages/orchestration-store",
       "from": "apps/server/src",
       "into": "src",
       "paths": [
+        "attachmentPaths.ts",
+        "attachmentStore.ts",
+        "imageMime.ts",
+        "observability/Attributes.ts",
+        "observability/Metrics.ts",
         "orchestration-v2/CommandPolicy.ts",
         "orchestration-v2/CommandReceiptStore.ts",
         "orchestration-v2/EffectOutbox.ts",
+        "orchestration-v2/EventSink.test.ts",
+        "orchestration-v2/EventSink.ts",
         "orchestration-v2/EventStore.ts",
         "orchestration-v2/LiveStreamBudget.test.ts",
         "orchestration-v2/LiveStreamBudget.ts",
@@ -321,9 +437,37 @@
         "orchestration-v2/ProjectCommands.ts",
         "orchestration-v2/ProjectStore.test.ts",
         "orchestration-v2/ProjectStore.ts",
+        "orchestration-v2/ProjectionMaintenance.test.ts",
+        "orchestration-v2/ProjectionMaintenance.ts",
+        "orchestration-v2/ProjectionStore.ts",
+        "orchestration-v2/ProviderCommitBatch.test.ts",
+        "orchestration-v2/ProviderCommitBatch.ts",
+        "orchestration-v2/RunCompletionReads.test.ts",
+        "orchestration-v2/RunMetrics.test.ts",
+        "orchestration-v2/RunMetrics.ts",
+        "orchestration-v2/ShellStream.test.ts",
+        "orchestration-v2/ShellStream.ts",
+        "orchestration-v2/ThreadFind.test.ts",
+        "orchestration-v2/ThreadFind.ts",
+        "orchestration-v2/ThreadLiveEventCoalescer.ts",
+        "orchestration-v2/ThreadSearch.test.ts",
+        "orchestration-v2/ThreadSearch.ts",
+        "orchestration-v2/ThreadStream.test.ts",
+        "orchestration-v2/ThreadStream.ts",
+        "orchestration-v2/ThreadTransportPerformance.test.ts",
+        "orchestration-v2/ThreadViewers.ts",
+        "orchestration-v2/TurnItemPositionStore.test.ts",
+        "orchestration-v2/TurnItemPositionStore.ts",
+        "orchestration-v2/TurnStartReads.test.ts",
+        "orchestration-v2/WireProjection.test.ts",
+        "orchestration-v2/WireProjection.ts",
         "orchestration-v2/deferredCommandMessage.ts",
         "orchestration-v2/delegatedTaskMessage.ts",
         "orchestration-v2/messageSearchIndex.ts",
+        "orchestration-v2/modelSwitch.test.ts",
+        "orchestration-v2/modelSwitch.ts",
+        "orchestration-v2/threadHistoryPaging.test.ts",
+        "orchestration-v2/threadHistoryPaging.ts",
         "persistence/Errors.test.ts",
         "persistence/Errors.ts",
         "persistence/Migrations.test.ts",
@@ -474,7 +618,8 @@
         "persistence/OrchestrationEventStore.ts",
         "persistence/reconcileV2PreviewMigration.test.ts",
         "persistence/reconcileV2PreviewMigration.ts",
-        "serverActivation.ts"
+        "serverActivation.ts",
+        "sourceControl/threadPullRequests.ts"
       ]
     }
   ]
