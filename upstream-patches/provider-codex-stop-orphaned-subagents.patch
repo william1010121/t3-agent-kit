@@ -1,29 +1,30 @@
 diff --git a/packages/provider-codex/src/orchestration-v2/Adapters/CodexAdapterV2.ts b/packages/provider-codex/src/orchestration-v2/Adapters/CodexAdapterV2.ts
-index ad50d78..7db6f17 100644
 --- a/packages/provider-codex/src/orchestration-v2/Adapters/CodexAdapterV2.ts
 +++ b/packages/provider-codex/src/orchestration-v2/Adapters/CodexAdapterV2.ts
-@@ -8473,10 +8473,23 @@ export const makeCodexAdapterV2 = Effect.fn("makeCodexAdapterV2")(function* (
-                 lineageRoots.some(
-                   (root) => context === root || isDescendantCodexTurn(context, root),
-                 );
+@@ -8462,11 +8462,26 @@
+                       (candidate) => candidate.providerThread.id === turnInput.providerThread.id,
+                     )
+                   : undefined);
 +              // A root that settled without background work is dropped, so its native subagents
-+              // still running have no root left to be found through.
-+              const orphanedOnThread = (context: ActiveCodexTurnContext) => {
-+                if (turnInput.requestRuntimeRestart !== true || context.subagent === null)
-+                  return false;
-+                let root = context;
-+                while (root.subagent !== null) root = root.subagent.parentContext;
-+                return (
-+                  root.providerThread.id === turnInput.providerThread.id &&
-+                  !activeTurnContexts.includes(root)
-+                );
-+              };
-               const interruptTargetContexts = [
-                 ...(activeTurn === undefined ? [] : [activeTurn]),
-                 ...activeTurnContexts.filter(
--                  (candidate) => candidate !== activeTurn && inLineage(candidate),
-+                  (candidate) =>
-+                    candidate !== activeTurn && (inLineage(candidate) || orphanedOnThread(candidate)),
-                 ),
-                 ...settledTurnContexts.filter(
-                   (candidate) =>
++              // still running stand in as roots of this Stop.
++              const orphanedSubagents =
++                turnInput.requestRuntimeRestart === true
++                  ? activeTurnContexts.filter((context) => {
++                      if (context.subagent === null) return false;
++                      let root = context;
++                      while (root.subagent !== null) root = root.subagent.parentContext;
++                      return (
++                        root.providerThread.id === turnInput.providerThread.id &&
++                        !activeTurnContexts.includes(root)
++                      );
++                    })
++                  : [];
+               const lineageRoots = Array.from(
+                 new Set([
+                   ...(activeTurn === undefined ? [] : [activeTurn]),
+                   ...(startingRetry === undefined ? [] : [startingRetry]),
+                   ...goalTurns,
++                  ...orphanedSubagents,
+                 ]),
+               );
+               const inLineage = (context: ActiveCodexTurnContext) =>
