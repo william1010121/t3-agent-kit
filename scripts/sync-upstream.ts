@@ -93,5 +93,5 @@ if (check) {
 } else {
   config.commit = resolved;
   FS.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
-  console.log(`Synced ${drift.length} file(s) from upstream ${resolved}.`);
+  console.log(`Copied ${drift.length} file(s) from upstream ${resolved}.`);
 }
