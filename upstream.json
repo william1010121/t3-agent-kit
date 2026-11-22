@@ -198,7 +198,9 @@
         "provider/providerCompatibility.ts",
         "resourceTelemetry/ResourceAttribution.ts",
         "orchestration-v2/testkit/fixtures/simple/claude_transcript.ndjson",
-        "provider/model-manifest.json"
+        "provider/model-manifest.json",
+        "claude-history-worker.ts",
+        "claudeHistoryWorker.ts"
       ]
     }
   ]
