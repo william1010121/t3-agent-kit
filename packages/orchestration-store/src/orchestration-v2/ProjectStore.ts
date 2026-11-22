@@ -247,20 +247,24 @@ export const make = Effect.gen(function* () {
     function* (event) {
       if (event.type === "project.created") {
         const payload = event.payload;
+        // A migration baseline replays project.created over a live row; keep the
+        // settings its payload does not carry.
+        const previous = yield* get(payload.projectId);
+        const kept = Option.getOrUndefined(previous);
         return yield* upsertRow({
           projectId: payload.projectId,
           title: payload.title,
           hasCustomTitle: false,
           workspaceRoot: payload.workspaceRoot,
           defaultModelSelection: payload.defaultModelSelection,
-          defaultThreadEnvMode: payload.defaultThreadEnvMode ?? null,
-          autoPull: false,
-          faviconPath: payload.faviconPath ?? null,
-          projectIcon: payload.projectIcon ?? null,
+          defaultThreadEnvMode: payload.defaultThreadEnvMode ?? kept?.defaultThreadEnvMode ?? null,
+          autoPull: kept?.autoPull ?? false,
+          faviconPath: payload.faviconPath ?? kept?.faviconPath ?? null,
+          projectIcon: payload.projectIcon ?? kept?.projectIcon ?? null,
           scripts: payload.scripts,
-          trackedFolders: payload.trackedFolders ?? [],
-          pinnedAt: null,
-          archivedAt: null,
+          trackedFolders: payload.trackedFolders ?? kept?.trackedFolders ?? [],
+          pinnedAt: kept?.pinnedAt ?? null,
+          archivedAt: kept?.archivedAt ?? null,
           createdAt: payload.createdAt,
           updatedAt: payload.updatedAt,
           deletedAt: null,

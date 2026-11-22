@@ -155,6 +155,13 @@ export function planProjectCommand(input: {
       }
       const conflict = requireWorkspaceAvailable(command.workspaceRoot);
       if (conflict !== undefined) return Result.fail(conflict);
+      for (const script of command.scripts ?? []) {
+        if (!isScriptRunCommand(`script.${script.id}.run`)) {
+          return invariant(
+            `Script IDs must be 1-${MAX_SCRIPT_ID_LENGTH} lowercase letters, digits or hyphens, starting with a letter or digit (got ${script.id.length} characters).`,
+          );
+        }
+      }
       return Result.succeed({
         ...base,
         type: "project.created",

@@ -1,0 +1,24 @@
+diff --git a/packages/orchestration-store/src/persistence/Migrations/081_ProjectionMessageSearchText.ts b/packages/orchestration-store/src/persistence/Migrations/081_ProjectionMessageSearchText.ts
+index 4bbcec4..f257202 100644
+--- a/packages/orchestration-store/src/persistence/Migrations/081_ProjectionMessageSearchText.ts
++++ b/packages/orchestration-store/src/persistence/Migrations/081_ProjectionMessageSearchText.ts
+@@ -15,8 +15,8 @@ export default Effect.gen(function* () {
+   // the backfill below re-indexes every message that reads differently.
+   yield* recreateMessageSearchTriggers(sql);
+ 
+-  // Only messages holding a citation link read differently. The raw check
+-  // first skips parsing the JSON of every other message.
++  // Only messages holding a citation link or a backslash escape read
++  // differently. The raw check first skips parsing the JSON of every other message.
+   const pageSize = 500;
+   let afterMessageId = "";
+   while (true) {
+@@ -24,7 +24,7 @@ export default Effect.gen(function* () {
+       SELECT message_id, json_extract(payload_json, '$.text') AS text
+       FROM orchestration_v2_projection_messages
+       WHERE message_id > ${afterMessageId}
+-        AND payload_json LIKE '%t3-citation://%'
++        AND (payload_json LIKE '%t3-citation://%' OR payload_json LIKE '%\\%')
+         AND json_type(payload_json, '$.text') = 'text'
+       ORDER BY message_id
+       LIMIT ${pageSize}
