@@ -34,7 +34,7 @@ be re-synced from T3 Code with one command.
 | 2 | `replay` (as `provider-testing`) and `adapter-acp` (as `provider-acp`) | Done |
 | 2 | `adapter-codex` (as `provider-codex`) | Done |
 | 2 | `adapter-claude` (as `provider-claude`) | Done |
-| 3 | `orchestrator`: command → event → outbox | Storage, project decider and thread projection done (`orchestration-store`); thread decider rules done; `Orchestrator` and effect worker still planned |
+| 3 | `orchestrator`: command → event → outbox | Storage, project decider, thread projection and self-contained thread rules done (`orchestration-store`). `Orchestrator` and the effect worker stay reference-only: see [the orchestrator reference](docs/orchestrator-reference.md) |
 | 3 | `client-runtime`: WebSocket connection, reconnect, RPC, relay | Done (thread sync still planned) |
 
 ## Checkpoint example
